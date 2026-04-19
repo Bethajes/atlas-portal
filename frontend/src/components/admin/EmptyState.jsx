@@ -1,3 +1,4 @@
+import React from 'react';
 import Button from './Button';
 
 export default function EmptyState({ icon: Icon, message, actionLabel, onAction }) {

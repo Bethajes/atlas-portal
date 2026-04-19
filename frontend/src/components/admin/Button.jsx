@@ -1,3 +1,5 @@
+import React from 'react';
+
 const VARIANT_CLASS = {
   primary: 'bg-blue-600 hover:bg-blue-700 text-white',
   secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-700',

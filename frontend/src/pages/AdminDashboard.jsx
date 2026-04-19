@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import {
   LayoutDashboard, Users, Briefcase, BookOpen, Building2, GraduationCap, Calendar,
   AlertCircle, LogOut, ChevronLeft, ChevronRight, Search, Plus, Menu, X,
-  Pencil, Trash2, MoreVertical, Download, FileText,
+  Pencil, Trash2, MoreVertical, Download, FileText, BarChart2,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +21,7 @@ import Breadcrumb from '../components/admin/Breadcrumb';
 import Pagination, { paginatedItems } from '../components/admin/Pagination';
 import BulkToolbar from '../components/admin/BulkToolbar';
 import { exportStudentsCsv, exportProgramsCsv } from '../utils/exportCsv';
+import AnalyticsDashboard from './AnalyticsDashboard';
 
 const TAB_LABELS = {
   overview: 'Overview',
@@ -32,6 +33,7 @@ const TAB_LABELS = {
   semesters: 'Semesters',
   notifications: 'Notifications',
   audit: 'Audit Log',
+  analytics: 'Analytics',
 };
 
 function filteredItems(list, keys, term) {
@@ -91,7 +93,7 @@ export default function AdminDashboard() {
 
   const visibleTabs = useMemo(() => {
     if (isRegistrarAdmin) return ['students'];
-    const base = ['overview', 'students', 'instructors', 'courses', 'departments', 'programs', 'semesters', 'notifications'];
+    const base = ['overview', 'students', 'instructors', 'courses', 'departments', 'programs', 'semesters', 'notifications', 'analytics'];
     if (isSuperAdmin) base.push('audit');
     return base;
   }, [isRegistrarAdmin, isSuperAdmin]);
@@ -572,6 +574,9 @@ export default function AdminDashboard() {
         {visibleTabs.includes('audit') && isSuperAdmin && (
           <NavBtn tab="audit" Icon={FileText} label="Audit Log" />
         )}
+        {visibleTabs.includes('analytics') && (
+          <NavBtn tab="analytics" Icon={BarChart2} label="Analytics" />
+        )}
         <button
           type="button"
           onClick={() => { logout(); navigate('/login'); }}
@@ -932,6 +937,10 @@ export default function AdminDashboard() {
                 )}
               </div>
             </div>
+          )}
+
+          {activeTab === 'analytics' && (
+            <AnalyticsDashboard />
           )}
 
           {activeTab === 'audit' && isSuperAdmin && (

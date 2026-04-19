@@ -19,6 +19,7 @@ const {
   updateStudentAdmin,
   deleteStudentAdmin,
 } = require('../controllers/adminAcademic.controller');
+const { getAnalytics } = require('../controllers/analytics.controller');
 
 router.use(authenticateToken, authorizeRoles('ADMIN'));
 
@@ -44,5 +45,8 @@ router.delete('/students/:id', requireAdminRole('SUPER_ADMIN'), deleteStudentAdm
 
 // Audit
 router.get('/audit-logs', requireAdminRole('SUPER_ADMIN'), getAuditLogs);
+
+// Analytics
+router.get('/analytics', getAnalytics);
 
 module.exports = router;
