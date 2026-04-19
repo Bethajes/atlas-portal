@@ -1,0 +1,16 @@
+{
+  "verbose": true,
+  "ignore": [
+    "node_modules",
+    ".git",
+    "uploads/*",
+    "prisma/migrations/*"
+  ],
+  "watch": [
+    "server.js",
+    "src/**/*",
+    "prisma/schema.prisma",
+    ".env"
+  ],
+  "ext": "js,json,prisma"
+}

@@ -1,0 +1,599 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AcademicSemester {
+  id                   String                 @id @default(uuid())
+  name                 String
+  type                 SemesterType
+  year                 Int
+  startDate            DateTime
+  endDate              DateTime
+  registrationStart    DateTime
+  registrationEnd      DateTime
+  dropDeadline         DateTime
+  addDeadline          DateTime
+  isActive             Boolean                @default(false)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  admissionApplication AdmissionApplication[]
+  course               Course[]
+  enrollment           Enrollment[]
+  feeStructure         FeeStructure[]
+  grade                Grade[]
+  invoice              Invoice[]
+  semesterRegistration SemesterRegistration[]
+  student              Student[]
+
+  @@unique([type, year])
+}
+
+model AdmissionApplication {
+  id                String            @id @default(uuid())
+  applicationNumber String            @unique
+  firstName         String
+  lastName          String
+  email             String
+  phone             String
+  dateOfBirth       DateTime
+  gender            String?
+  nationality       String            @default("Ethiopian")
+  address           String?
+  programId         String
+  intakeSemesterId  String
+  previousSchool    String?
+  previousGrade     Float?
+  documents         Json?
+  status            ApplicationStatus @default(SUBMITTED)
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  academicSemester  AcademicSemester  @relation(fields: [intakeSemesterId], references: [id])
+  program           Program           @relation(fields: [programId], references: [id])
+  student           Student[]
+}
+
+model Announcement {
+  id         String   @id @default(uuid())
+  title      String
+  content    String
+  courseId   String?
+  authorId   String
+  createdAt  DateTime @default(now())
+  isGlobal   Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+  targetRole Role?
+  user       User     @relation(fields: [authorId], references: [id])
+  course     Course?  @relation(fields: [courseId], references: [id])
+}
+
+model Assignment {
+  id          String       @id @default(uuid())
+  title       String
+  description String
+  dueDate     DateTime
+  courseId    String
+  authorId    String
+  createdAt   DateTime     @default(now())
+  totalPoints Int          @default(100)
+  updatedAt   DateTime     @updatedAt
+  weight      Float        @default(1.0)
+  user        User         @relation(fields: [authorId], references: [id])
+  course      Course       @relation(fields: [courseId], references: [id])
+  grade       Grade[]
+  submission  Submission[]
+}
+
+model Course {
+  id                                                             String                @id @default(uuid())
+  title                                                          String
+  description                                                    String?
+  instructorId                                                   String?
+  createdAt                                                      DateTime              @default(now())
+  code                                                           String                @unique
+  credits                                                        Int                   @default(3)
+  updatedAt                                                      DateTime              @updatedAt
+  currentEnrollment                                              Int                   @default(0)
+  departmentId                                                   String
+  maxStudents                                                    Int                   @default(40)
+  semesterId                                                     String?
+  announcement                                                   Announcement[]
+  assignment                                                     Assignment[]
+  department                                                     Department            @relation(fields: [departmentId], references: [id])
+  instructor                                                     Instructor?           @relation("InstructorTeachingCourses", fields: [instructorId], references: [id])
+  academicSemester                                               AcademicSemester?     @relation(fields: [semesterId], references: [id])
+  CoursePrerequisites_CoursePrerequisites_courseIdToCourse       CoursePrerequisites[] @relation("CoursePrerequisites_courseIdToCourse")
+  CoursePrerequisites_CoursePrerequisites_prerequisiteIdToCourse CoursePrerequisites[] @relation("CoursePrerequisites_prerequisiteIdToCourse")
+  enrollment                                                     Enrollment[]
+  grade                                                          Grade[]
+  material                                                       Material[]
+  programCourse                                                  ProgramCourse[]
+  registrationCourse                                             RegistrationCourse[]
+  sections                                                       Section[]
+}
+
+model CoursePrerequisites {
+  id                                                String @id @default(uuid())
+  courseId                                          String
+  prerequisiteId                                    String
+  Course_CoursePrerequisites_courseIdToCourse       Course @relation("CoursePrerequisites_courseIdToCourse", fields: [courseId], references: [id])
+  Course_CoursePrerequisites_prerequisiteIdToCourse Course @relation("CoursePrerequisites_prerequisiteIdToCourse", fields: [prerequisiteId], references: [id])
+
+  @@unique([courseId, prerequisiteId])
+}
+
+model Department {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  code        String       @unique
+  description String?
+  headId      String?      @unique
+  foundedYear Int?
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  courses     Course[]
+  head        Instructor?  @relation("DepartmentHead", fields: [headId], references: [id])
+  instructors Instructor[] @relation("DepartmentInstructors")
+  programs    Program[]
+  students    Student[]
+}
+
+model Enrollment {
+  id               String           @id @default(uuid())
+  studentId        String
+  courseId         String
+  semesterId       String
+  status           EnrollmentStatus @default(ENROLLED)
+  grade            Float?
+  letterGrade      String?
+  enrolledAt       DateTime         @default(now())
+  droppedAt        DateTime?
+  completedAt      DateTime?
+  course           Course           @relation(fields: [courseId], references: [id])
+  academicSemester AcademicSemester @relation(fields: [semesterId], references: [id])
+  student          Student          @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, courseId, semesterId])
+}
+
+model FeeStructure {
+  id               String           @id @default(uuid())
+  programId        String
+  semesterId       String
+  tuitionFee       Float
+  registrationFee  Float            @default(500)
+  libraryFee       Float            @default(200)
+  labFee           Float            @default(300)
+  activityFee      Float            @default(150)
+  otherFees        Float            @default(0)
+  totalFee         Float
+  academicYear     String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  program          Program          @relation(fields: [programId], references: [id])
+  academicSemester AcademicSemester @relation(fields: [semesterId], references: [id])
+  invoice          Invoice[]
+
+  @@unique([programId, semesterId])
+}
+
+model Grade {
+  id               String            @id @default(uuid())
+  studentId        String
+  courseId         String
+  assignmentId     String?
+  score            Float
+  maxScore         Float             @default(100)
+  weight           Float             @default(1.0)
+  gradePoint       Float?
+  letterGrade      String?
+  type             String            @default("ASSIGNMENT")
+  gradedBy         String?
+  gradedAt         DateTime?
+  feedback         String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  semesterId       String?
+  assignment       Assignment?       @relation(fields: [assignmentId], references: [id])
+  course           Course            @relation(fields: [courseId], references: [id])
+  academicSemester AcademicSemester? @relation(fields: [semesterId], references: [id])
+  user             User              @relation(fields: [studentId], references: [id])
+}
+
+model Instructor {
+  id               String      @id @default(uuid())
+  userId           String      @unique
+  employeeId       String      @unique
+  departmentId     String
+  title            String?
+  specialization   String?
+  highestDegree    String?
+  joinedAt         DateTime    @default(now())
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  courses          Course[]    @relation("InstructorTeachingCourses")
+  headedDepartment Department? @relation("DepartmentHead")
+  department       Department  @relation("DepartmentInstructors", fields: [departmentId], references: [id])
+  user             User        @relation(fields: [userId], references: [id])
+  sections         Section[]
+}
+
+model Invoice {
+  id                   String                 @id @default(uuid())
+  invoiceNumber        String                 @unique
+  studentId            String
+  semesterId           String
+  feeStructureId       String
+  totalAmount          Float
+  paidAmount           Float                  @default(0)
+  dueAmount            Float
+  dueDate              DateTime
+  status               PaymentStatus          @default(PENDING)
+  notes                String?
+  generatedAt          DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  feeStructure         FeeStructure           @relation(fields: [feeStructureId], references: [id])
+  academicSemester     AcademicSemester       @relation(fields: [semesterId], references: [id])
+  student              Student                @relation(fields: [studentId], references: [id])
+  payment              Payment[]
+  semesterRegistration SemesterRegistration[]
+}
+
+model Material {
+  id         String   @id @default(uuid())
+  title      String
+  fileUrl    String
+  fileType   String?
+  courseId   String
+  uploadedAt DateTime @default(now())
+  uploadedBy String
+  course     Course   @relation(fields: [courseId], references: [id])
+  user       User     @relation(fields: [uploadedBy], references: [id])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([token])
+}
+
+model Payment {
+  id                 String              @id @default(uuid())
+  studentId          String
+  invoiceId          String
+  amount             Float
+  referenceNumber    String              @unique
+  bankTransactionId  String?             @unique
+  paymentMethod      PaymentMethod       @default(MOBILE_MONEY)
+  status             PaymentStatus       @default(PENDING)
+  paymentDate        DateTime?
+  verifiedAt         DateTime?
+  verifiedBy         String?
+  verificationMethod VerificationMethod?
+  receiptNumber      String?             @unique
+  notes              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  invoice            Invoice             @relation(fields: [invoiceId], references: [id])
+  student            Student             @relation(fields: [studentId], references: [id])
+}
+
+model Program {
+  id                   String                 @id @default(uuid())
+  name                 String
+  type                 ProgramType            @default(DECLARED)
+  code                 String                 @unique
+  departmentId         String?
+  degreeLevel          String                 @default("BACHELOR")
+  durationYears        Int                    @default(4)
+  totalCredits         Int                    @default(120)
+  minGPA               Float                  @default(2.0)
+  description          String?
+  isDeleted            Boolean                @default(false)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  admissionApplication AdmissionApplication[]
+  feeStructure         FeeStructure[]
+  department           Department?            @relation(fields: [departmentId], references: [id])
+  programCourse        ProgramCourse[]
+  student              Student[]
+}
+
+model ProgramCourse {
+  id         String  @id @default(uuid())
+  programId  String
+  courseId   String
+  semester   Int
+  year       Int
+  isRequired Boolean @default(true)
+  course     Course  @relation(fields: [courseId], references: [id])
+  program    Program @relation(fields: [programId], references: [id])
+
+  @@unique([programId, courseId])
+}
+
+model RegistrationCourse {
+  id                   String               @id @default(uuid())
+  registrationId       String
+  courseId             String
+  status               String               @default("ENROLLED")
+  addedAt              DateTime             @default(now())
+  course               Course               @relation(fields: [courseId], references: [id])
+  semesterRegistration SemesterRegistration @relation(fields: [registrationId], references: [id])
+
+  @@unique([registrationId, courseId])
+}
+
+model SemesterRegistration {
+  id                 String               @id @default(uuid())
+  studentId          String
+  semesterId         String
+  academicYear       String
+  registrationDate   DateTime             @default(now())
+  status             RegistrationStatus   @default(DRAFT)
+  approvedBy         String?
+  approvedAt         DateTime?
+  rejectionReason    String?
+  totalCredits       Int                  @default(0)
+  isPaid             Boolean              @default(false)
+  invoiceId          String?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  registrationCourse RegistrationCourse[]
+  invoice            Invoice?             @relation(fields: [invoiceId], references: [id])
+  academicSemester   AcademicSemester     @relation(fields: [semesterId], references: [id])
+  student              Student              @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, semesterId])
+}
+
+model Student {
+  id                   String                 @id @default(uuid())
+  userId               String                 @unique
+  studentId            String                 @unique
+  firstName            String?
+  fatherName           String?
+  email                String?
+  photoUrl             String?
+  isFirstLogin         Boolean                @default(true)
+  profileCompleted     Boolean                @default(false)
+  enrollmentYear       Int
+  currentYear          Int                    @default(1)
+  currentSemester      SemesterType           @default(FALL)
+  academicLevel        AcademicLevel          @default(FRESHMAN)
+  programId            String
+  departmentId         String
+  cumulativeGPA        Float?                 @default(0.0)
+  totalCredits         Int?                   @default(0)
+  graduatedAt          DateTime?
+  status               StudentStatus          @default(ACTIVE)
+  admissionId          String?
+  currentSemesterId    String?
+  registrationStatus   RegistrationStatus     @default(APPROVED)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  enrollment           Enrollment[]
+  invoice              Invoice[]
+  payment              Payment[]
+  semesterRegistration SemesterRegistration[]
+  sectionEnrollments   SectionEnrollment[]
+  admissionApplication AdmissionApplication?  @relation(fields: [admissionId], references: [id])
+  academicSemester     AcademicSemester?      @relation(fields: [currentSemesterId], references: [id])
+  department           Department             @relation(fields: [departmentId], references: [id])
+  program              Program                @relation(fields: [programId], references: [id])
+  user                 User                   @relation(fields: [userId], references: [id])
+}
+
+model Submission {
+  id           String     @id @default(uuid())
+  content      String?
+  grade        Float?
+  assignmentId String
+  studentId    String
+  submittedAt  DateTime   @default(now())
+  feedback     String?
+  fileUrl      String?
+  gradedAt     DateTime?
+  maxScore     Float      @default(100)
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  user         User       @relation(fields: [studentId], references: [id])
+
+  @@unique([assignmentId, studentId])
+}
+
+model User {
+  id                 String               @id @default(uuid())
+  name               String
+  institutionalEmail String               @unique
+  recoveryEmail      String?
+  password           String
+  role               Role                 @default(STUDENT)
+  adminRole          AdminRole?
+  profileImage       String?
+  emailVerified      Boolean              @default(false)
+  isFirstLogin       Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  announcement       Announcement[]
+  assignment         Assignment[]
+  grade              Grade[]
+  instructor         Instructor?
+  material           Material[]
+  passwordResetToken PasswordResetToken[]
+  student            Student?
+  submission         Submission[]
+  notification       Notification[]
+  auditLog           AuditLog[]
+
+  @@index([institutionalEmail])
+  @@index([role])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ERROR
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  User User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  action    String
+  resource  String
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  User User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Section {
+  id           String             @id @default(uuid())
+  name         String             // e.g. "A", "B", "C"
+  courseId     String
+  instructorId String?
+  semesterId   String?
+  maxStudents  Int                @default(40)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  course       Course             @relation(fields: [courseId], references: [id])
+  instructor   Instructor?        @relation(fields: [instructorId], references: [id])
+  enrollments  SectionEnrollment[]
+
+  @@unique([courseId, name, semesterId])
+}
+
+model SectionEnrollment {
+  id          String           @id @default(uuid())
+  studentId   String
+  sectionId   String
+  enrolledAt  DateTime         @default(now())
+  grade       Float?
+  letterGrade String?
+  status      EnrollmentStatus @default(ENROLLED)
+  student     Student          @relation(fields: [studentId], references: [id])
+  section     Section          @relation(fields: [sectionId], references: [id])
+
+  @@unique([studentId, sectionId])
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  DOCUMENTS_PENDING
+  ACCEPTED
+  REJECTED
+  WAITLISTED
+  ENROLLED
+}
+
+enum EnrollmentStatus {
+  ENROLLED
+  DROPPED
+  WITHDRAWN
+  COMPLETED
+  FAILED
+  INCOMPLETE
+  IN_PROGRESS
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  MOBILE_MONEY
+  CREDIT_CARD
+  SCHOLARSHIP
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+enum VerificationMethod {
+  AUTO
+  MANUAL
+  BANK_API
+}
+
+enum RegistrationStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  WAITLISTED
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+  REGISTRAR
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  STAFF
+  REGISTRAR_ADMIN
+}
+
+enum SemesterType {
+  FALL
+  SPRING
+  SUMMER
+}
+
+enum StudentStatus {
+  ACTIVE
+  PROBATION
+  SUSPENDED
+  GRADUATED
+  DROPPED
+  ON_LEAVE
+  WITHDRAWN
+}
+
+enum AcademicLevel {
+  APPLICANT
+  ADMITTED
+  FRESHMAN
+  SOPHOMORE
+  JUNIOR
+  SENIOR
+  GRADUATED
+}
+
+enum ProgramType {
+  DECLARED
+  UNDECLARED
+}
