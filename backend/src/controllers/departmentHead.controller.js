@@ -62,6 +62,10 @@ const getDepartmentInstructors = async (req, res) => {
       where: { userId: req.user.id },
     });
 
+    if (!instructor) {
+      return res.status(403).json({ success: false, message: 'Instructor profile not found' });
+    }
+
     const department = await prisma.department.findFirst({
       where: { headId: instructor.id },
     });
@@ -88,6 +92,10 @@ const getDepartmentCourses = async (req, res) => {
     const instructor = await prisma.instructor.findUnique({
       where: { userId: req.user.id },
     });
+
+    if (!instructor) {
+      return res.status(403).json({ success: false, message: 'Instructor profile not found' });
+    }
 
     const department = await prisma.department.findFirst({
       where: { headId: instructor.id },
@@ -122,6 +130,10 @@ const assignInstructorToCourse = async (req, res) => {
     const deptHead = await prisma.instructor.findUnique({
       where: { userId: req.user.id },
     });
+
+    if (!deptHead) {
+      return res.status(403).json({ success: false, message: 'Instructor profile not found' });
+    }
 
     const department = await prisma.department.findFirst({
       where: { headId: deptHead.id },
@@ -158,6 +170,10 @@ const getUnassignedCourses = async (req, res) => {
       where: { userId: req.user.id },
     });
 
+    if (!instructor) {
+      return res.status(403).json({ success: false, message: 'Instructor profile not found' });
+    }
+
     const department = await prisma.department.findFirst({
       where: { headId: instructor.id },
     });
@@ -187,6 +203,10 @@ const getInstructorWorkload = async (req, res) => {
     const instructor = await prisma.instructor.findUnique({
       where: { userId: req.user.id },
     });
+
+    if (!instructor) {
+      return res.status(403).json({ success: false, message: 'Instructor profile not found' });
+    }
 
     const department = await prisma.department.findFirst({
       where: { headId: instructor.id },

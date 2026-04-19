@@ -331,7 +331,7 @@ const uploadReceiptAndSubmit = asyncHandler(async (req, res) => {
       });
     }
 
-    // 2. Create Payment Proof
+    // 2. Create Payment Proof (store proof URL in notes since schema doesn't have proofUrl field)
     await tx.payment.create({
       data: {
         studentId: registration.studentId,
@@ -339,8 +339,7 @@ const uploadReceiptAndSubmit = asyncHandler(async (req, res) => {
         amount: invoice.totalAmount,
         referenceNumber: `PROOF-${Date.now()}`,
         status: 'PENDING',
-        proofUrl,
-        proofType: req.file.mimetype.includes('pdf') ? 'PDF' : 'IMAGE',
+        notes: `proof:${proofUrl}`,
       },
     });
 

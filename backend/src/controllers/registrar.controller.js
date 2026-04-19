@@ -436,6 +436,7 @@ const updateRegistrationStatus = async (req, res) => {
       include: {
         student: { include: { user: { select: { name: true } } } },
         registrationCourse: true,
+        academicSemester: { select: { name: true } },
       },
     });
 
