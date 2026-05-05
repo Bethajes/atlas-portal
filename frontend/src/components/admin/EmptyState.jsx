@@ -1,16 +1,20 @@
 import React from 'react';
 import Button from './Button';
 
-export default function EmptyState({ icon: Icon, message, actionLabel, onAction }) {
+export default function EmptyState({ icon: Icon, message, actionLabel, onAction, className = '' }) {
   return (
-    <div className="flex flex-col items-center justify-center py-14 px-6 text-center">
-      {Icon ? <Icon className="w-12 h-12 text-gray-300 mb-4" /> : null}
-      <p className="text-gray-600 font-medium mb-4 max-w-sm">{message}</p>
-      {actionLabel && onAction ? (
+    <div className={`flex flex-col items-center justify-center py-12 px-4 ${className}`.trim()}>
+      {Icon && (
+        <div className="mb-4 p-3 bg-gray-100 rounded-full">
+          <Icon className="w-8 h-8 text-gray-400" />
+        </div>
+      )}
+      <p className="text-gray-500 text-center mb-4">{message}</p>
+      {actionLabel && onAction && (
         <Button variant="primary" onClick={onAction}>
           {actionLabel}
         </Button>
-      ) : null}
+      )}
     </div>
   );
 }

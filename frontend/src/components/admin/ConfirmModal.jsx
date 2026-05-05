@@ -1,5 +1,7 @@
+import React from 'react';
 import Modal from './Modal';
 import Button from './Button';
+import { AlertTriangle } from 'lucide-react';
 
 export default function ConfirmModal({
   isOpen,
@@ -13,20 +15,45 @@ export default function ConfirmModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Delete ${entityType}?`}
-      subtitle="This action may be reversible from Trash if soft-delete is enabled."
+      title={`Delete ${entityType}`}
       accentColor="red"
     >
-      <p className="text-sm text-gray-600 mb-6">
-        Are you sure you want to remove <strong className="text-gray-900">{itemName}</strong>?
-      </p>
-      <div className="flex gap-3">
-        <Button variant="secondary" className="flex-1" onClick={onClose} disabled={loading}>
-          Cancel
-        </Button>
-        <Button variant="danger" className="flex-1" loading={loading} onClick={onConfirm}>
-          Delete
-        </Button>
+      <div className="space-y-4">
+        {/* Warning Icon */}
+        <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+          <AlertTriangle className="w-6 h-6 text-red-600" />
+        </div>
+
+        {/* Warning Message */}
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Are you sure you want to delete{' '}
+            <span className="font-semibold text-gray-900">{itemName}</span>?
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
+            This action cannot be undone.
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-2">
+          <Button
+            variant="secondary"
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={onConfirm}
+            loading={loading}
+            className="flex-1"
+          >
+            Delete
+          </Button>
+        </div>
       </div>
     </Modal>
   );

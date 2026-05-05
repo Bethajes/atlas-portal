@@ -206,6 +206,16 @@ const login = async (req, res) => {
     try {
       user = await prisma.user.findUnique({
         where: { institutionalEmail },
+        select: {
+          id: true,
+          name: true,
+          institutionalEmail: true,
+          password: true,
+          role: true,
+          adminRole: true,
+          profileImage: true,
+          isFirstLogin: true,
+        },
       });
     } catch (error) {
       // Fallback for older DB snapshots missing newer columns (e.g. isFirstLogin)
@@ -218,6 +228,7 @@ const login = async (req, res) => {
             institutionalEmail: true,
             password: true,
             role: true,
+            adminRole: true,
             profileImage: true,
           },
         });
@@ -270,7 +281,7 @@ const login = async (req, res) => {
         role: user.role,
         adminRole: user.role === 'ADMIN' ? adminRole : null,
         profileImage: user.profileImage,
-        isFirstLogin: typeof user.isFirstLogin === 'boolean' ? user.isFirstLogin : true,
+        isFirstLogin: typeof user.isFirstLogin === 'boolean' ? user.isFirstLogin : (user.role === 'STUDENT'),
         studentId,
       },
     });

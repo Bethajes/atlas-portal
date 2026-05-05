@@ -136,9 +136,9 @@ model Department {
   description String?
   headId      String?      @unique
   foundedYear Int?
-  isDeleted   Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
+  isDeleted   Boolean      @default(false)
   courses     Course[]
   head        Instructor?  @relation("DepartmentHead", fields: [headId], references: [id])
   instructors Instructor[] @relation("DepartmentInstructors")
@@ -240,6 +240,9 @@ model Invoice {
   notes                String?
   generatedAt          DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
+  referenceNumber      String?                @unique
+  lateFeeApplied       Boolean                @default(false)
+  discountAmount       Float                  @default(0)
   feeStructure         FeeStructure           @relation(fields: [feeStructureId], references: [id])
   academicSemester     AcademicSemester       @relation(fields: [semesterId], references: [id])
   student              Student                @relation(fields: [studentId], references: [id])
@@ -288,6 +291,7 @@ model Payment {
   notes              String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  proofUrl           String?
   invoice            Invoice             @relation(fields: [invoiceId], references: [id])
   student            Student             @relation(fields: [studentId], references: [id])
 }
@@ -295,7 +299,6 @@ model Payment {
 model Program {
   id                   String                 @id @default(uuid())
   name                 String
-  type                 ProgramType            @default(DECLARED)
   code                 String                 @unique
   departmentId         String?
   degreeLevel          String                 @default("BACHELOR")
@@ -303,9 +306,10 @@ model Program {
   totalCredits         Int                    @default(120)
   minGPA               Float                  @default(2.0)
   description          String?
-  isDeleted            Boolean                @default(false)
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
+  type                 ProgramType            @default(DECLARED)
+  isDeleted            Boolean                @default(false)
   admissionApplication AdmissionApplication[]
   feeStructure         FeeStructure[]
   department           Department?            @relation(fields: [departmentId], references: [id])
@@ -356,7 +360,7 @@ model SemesterRegistration {
   registrationCourse RegistrationCourse[]
   invoice            Invoice?             @relation(fields: [invoiceId], references: [id])
   academicSemester   AcademicSemester     @relation(fields: [semesterId], references: [id])
-  student              Student              @relation(fields: [studentId], references: [id])
+  student            Student              @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, semesterId])
 }
@@ -365,32 +369,32 @@ model Student {
   id                   String                 @id @default(uuid())
   userId               String                 @unique
   studentId            String                 @unique
-  firstName            String?
-  fatherName           String?
-  email                String?
-  photoUrl             String?
-  isFirstLogin         Boolean                @default(true)
-  profileCompleted     Boolean                @default(false)
   enrollmentYear       Int
   currentYear          Int                    @default(1)
   currentSemester      SemesterType           @default(FALL)
-  academicLevel        AcademicLevel          @default(FRESHMAN)
   programId            String
   departmentId         String
   cumulativeGPA        Float?                 @default(0.0)
   totalCredits         Int?                   @default(0)
-  graduatedAt          DateTime?
   status               StudentStatus          @default(ACTIVE)
   admissionId          String?
   currentSemesterId    String?
   registrationStatus   RegistrationStatus     @default(APPROVED)
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
+  email                String?
+  fatherName           String?
+  firstName            String?
+  isFirstLogin         Boolean                @default(true)
+  photoUrl             String?
+  profileCompleted     Boolean                @default(false)
+  academicLevel        AcademicLevel          @default(FRESHMAN)
+  graduatedAt          DateTime?
   enrollment           Enrollment[]
   invoice              Invoice[]
   payment              Payment[]
-  semesterRegistration SemesterRegistration[]
   sectionEnrollments   SectionEnrollment[]
+  semesterRegistration SemesterRegistration[]
   admissionApplication AdmissionApplication?  @relation(fields: [admissionId], references: [id])
   academicSemester     AcademicSemester?      @relation(fields: [currentSemesterId], references: [id])
   department           Department             @relation(fields: [departmentId], references: [id])
@@ -422,23 +426,22 @@ model User {
   recoveryEmail      String?
   password           String
   role               Role                 @default(STUDENT)
-  adminRole          AdminRole?
-  profileImage       String?
   emailVerified      Boolean              @default(false)
-  isFirstLogin       Boolean              @default(true)
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
-
+  isFirstLogin       Boolean              @default(true)
+  profileImage       String?
+  adminRole          AdminRole?
   announcement       Announcement[]
   assignment         Assignment[]
+  auditLog           AuditLog[]
   grade              Grade[]
   instructor         Instructor?
   material           Material[]
+  notification       Notification[]
   passwordResetToken PasswordResetToken[]
   student            Student?
   submission         Submission[]
-  notification       Notification[]
-  auditLog           AuditLog[]
 
   @@index([institutionalEmail])
   @@index([role])
@@ -449,11 +452,10 @@ model Notification {
   userId    String
   title     String
   message   String
-  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ERROR
+  type      String   @default("INFO")
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-
-  User User @relation(fields: [userId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([isRead])
@@ -467,8 +469,7 @@ model AuditLog {
   details   Json?
   ipAddress String?
   createdAt DateTime @default(now())
-
-  User User @relation(fields: [userId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([action])
@@ -476,16 +477,16 @@ model AuditLog {
 }
 
 model Section {
-  id           String             @id @default(uuid())
-  name         String             // e.g. "A", "B", "C"
+  id           String              @id @default(uuid())
+  name         String
   courseId     String
   instructorId String?
   semesterId   String?
-  maxStudents  Int                @default(40)
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
-  course       Course             @relation(fields: [courseId], references: [id])
-  instructor   Instructor?        @relation(fields: [instructorId], references: [id])
+  maxStudents  Int                 @default(40)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  course       Course              @relation(fields: [courseId], references: [id])
+  instructor   Instructor?         @relation(fields: [instructorId], references: [id])
   enrollments  SectionEnrollment[]
 
   @@unique([courseId, name, semesterId])
@@ -499,8 +500,8 @@ model SectionEnrollment {
   grade       Float?
   letterGrade String?
   status      EnrollmentStatus @default(ENROLLED)
-  student     Student          @relation(fields: [studentId], references: [id])
   section     Section          @relation(fields: [sectionId], references: [id])
+  student     Student          @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, sectionId])
 }
@@ -538,6 +539,10 @@ enum PaymentStatus {
   SUCCESSFUL
   FAILED
   REFUNDED
+  PAID
+  OVERDUE
+  APPROVED
+  REJECTED
 }
 
 enum VerificationMethod {

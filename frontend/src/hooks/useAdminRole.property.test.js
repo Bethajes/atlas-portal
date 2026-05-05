@@ -1,41 +1,117 @@
-import { describe, it, expect } from 'vitest';
+import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fc from 'fast-check';
+import { renderHook } from '@testing-library/react';
+import { useAdminRole } from './useAdminRole';
+import * as AuthContext from '../context/AuthContext';
 
-/** Mirrors useAdminRole rules for isolated property testing */
-function capabilities(adminRole) {
-  const isSuperAdmin = adminRole === 'SUPER_ADMIN';
-  const isStaff = adminRole === 'STAFF';
-  const isRegistrarAdmin = adminRole === 'REGISTRAR_ADMIN';
-  const can = (action) => {
-    if (isSuperAdmin) return true;
-    if (action === 'viewAuditLog') return false;
-    if (action === 'delete') return isStaff;
-    if (action === 'create') return isStaff || isRegistrarAdmin;
-    return false;
-  };
-  return { can };
-}
+/**
+ * Feature: admin-dashboard-upgrade, Property 4: RBAC UI gating by admin sub-role
+ * Validates: Requirements 13.1, 13.2, 13.3, 13.4
+ */
+describe('useAdminRole RBAC (Property 4)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-describe('RBAC by admin sub-role (Property 4)', () => {
-  it('matches policy table', () => {
+  it('returns correct permissions for each admin sub-role', () => {
     fc.assert(
-      fc.property(fc.constantFrom('SUPER_ADMIN', 'STAFF', 'REGISTRAR_ADMIN'), (role) => {
-        const { can } = capabilities(role);
-        if (role === 'SUPER_ADMIN') {
-          expect(can('delete')).toBe(true);
-          expect(can('create')).toBe(true);
-          expect(can('viewAuditLog')).toBe(true);
-        } else if (role === 'STAFF') {
-          expect(can('delete')).toBe(true);
-          expect(can('create')).toBe(true);
-          expect(can('viewAuditLog')).toBe(false);
-        } else {
-          expect(can('delete')).toBe(false);
-          expect(can('create')).toBe(true);
-          expect(can('viewAuditLog')).toBe(false);
+      fc.property(
+        fc.constantFrom('SUPER_ADMIN', 'STAFF', 'REGISTRAR_ADMIN'),
+        (adminRole) => {
+          // Mock the user object with the generated adminRole
+          const mockUser = {
+            id: 1,
+            name: 'Test Admin',
+            role: 'ADMIN',
+            adminRole: adminRole,
+          };
+
+          // Mock useAuth to return our test user
+          vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+            user: mockUser,
+            authLoading: false,
+            error: null,
+            login: vi.fn(),
+            register: vi.fn(),
+            logout: vi.fn(),
+            isAuthenticated: true,
+            isAdmin: true,
+            isInstructor: false,
+            isStudent: false,
+            isRegistrar: false,
+          });
+
+          const { result } = renderHook(() => useAdminRole());
+
+          // Verify role flags
+          if (adminRole === 'SUPER_ADMIN') {
+            expect(result.current.isSuperAdmin).toBe(true);
+            expect(result.current.isStaff).toBe(false);
+            expect(result.current.isRegistrarAdmin).toBe(false);
+            
+            // SUPER_ADMIN can do everything
+            expect(result.current.can('delete')).toBe(true);
+            expect(result.current.can('create')).toBe(true);
+            expect(result.current.can('viewAuditLog')).toBe(true);
+          } else if (adminRole === 'STAFF') {
+            expect(result.current.isSuperAdmin).toBe(false);
+            expect(result.current.isStaff).toBe(true);
+            expect(result.current.isRegistrarAdmin).toBe(false);
+            
+            // STAFF can create but not delete or view audit logs
+            expect(result.current.can('delete')).toBe(false);
+            expect(result.current.can('create')).toBe(true);
+            expect(result.current.can('viewAuditLog')).toBe(false);
+          } else if (adminRole === 'REGISTRAR_ADMIN') {
+            expect(result.current.isSuperAdmin).toBe(false);
+            expect(result.current.isStaff).toBe(false);
+            expect(result.current.isRegistrarAdmin).toBe(true);
+            
+            // REGISTRAR_ADMIN has limited permissions
+            expect(result.current.can('delete')).toBe(false);
+            expect(result.current.can('create')).toBe(false);
+            expect(result.current.can('viewAuditLog')).toBe(false);
+          }
+
+          // Restore the mock for the next iteration
+          vi.restoreAllMocks();
         }
-      }),
-      { numRuns: 30 }
+      ),
+      { numRuns: 100 }
     );
+  });
+
+  it('defaults to SUPER_ADMIN behavior when adminRole is null', () => {
+    const mockUser = {
+      id: 1,
+      name: 'Test Admin',
+      role: 'ADMIN',
+      adminRole: null, // No adminRole set
+    };
+
+    vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+      user: mockUser,
+      authLoading: false,
+      error: null,
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      isAuthenticated: true,
+      isAdmin: true,
+      isInstructor: false,
+      isStudent: false,
+      isRegistrar: false,
+    });
+
+    const { result } = renderHook(() => useAdminRole());
+
+    // Should default to SUPER_ADMIN behavior
+    expect(result.current.isSuperAdmin).toBe(true);
+    expect(result.current.can('delete')).toBe(true);
+    expect(result.current.can('create')).toBe(true);
+    expect(result.current.can('viewAuditLog')).toBe(true);
+
+    vi.restoreAllMocks();
   });
 });

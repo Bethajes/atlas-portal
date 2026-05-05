@@ -1,24 +1,34 @@
+import React from 'react';
+import { ChevronRight } from 'lucide-react';
+
 export default function Breadcrumb({ items = [] }) {
-  if (!items.length) return null;
+  if (!items || items.length === 0) {
+    return null;
+  }
+
   return (
-    <nav className="flex items-center gap-2 text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
-      {items.map((item, i) => {
-        const last = i === items.length - 1;
+    <nav className="flex items-center space-x-2 text-sm text-gray-600">
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1;
+        
         return (
-          <span key={`${item.label}-${i}`} className="flex items-center gap-2">
-            {i > 0 && <span className="text-gray-300">/</span>}
-            {last || !item.onClick ? (
-              <span className={last ? 'font-semibold text-gray-900' : 'text-gray-500'}>{item.label}</span>
+          <React.Fragment key={index}>
+            {index > 0 && (
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            )}
+            {isLast ? (
+              <span className="text-gray-900 font-medium">
+                {item.label}
+              </span>
             ) : (
               <button
-                type="button"
                 onClick={item.onClick}
-                className="text-blue-600 hover:underline font-medium"
+                className="hover:text-blue-600 transition-colors focus:outline-none focus:underline"
               >
                 {item.label}
               </button>
             )}
-          </span>
+          </React.Fragment>
         );
       })}
     </nav>

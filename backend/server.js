@@ -24,10 +24,20 @@ const { getPrograms } = require('./src/controllers/academic.controller');
 
 
 // 2. Middleware
-const corsOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+const configuredOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+const allowedOrigins = new Set([
+  configuredOrigin,
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+]);
 app.use(
   cors({
-    origin: corsOrigin,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.has(origin)) return callback(null, true);
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true, // Recommended for Auth/JWT cookies
   })
 );

@@ -10,10 +10,20 @@ uploadDirs.forEach(dir => {
   }
 });
 
+const PROOF_ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+const PROOF_MAX_SIZE = 2 * 1024 * 1024; // 2 MB
+
+/** Pure helper — returns true if the MIME type is allowed for proof uploads */
+const isProofMimeAllowed = (mime) => PROOF_ALLOWED_MIMES.includes(String(mime || '').toLowerCase());
+
+/** Pure helper — returns true if the file size is within the proof upload limit */
+const isProofSizeAllowed = (sizeBytes) => sizeBytes <= PROOF_MAX_SIZE;
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let dest = 'uploads/';
-    if (file.fieldname === 'receipt') dest += 'receipts';
+    if (file.fieldname === 'proof') dest += 'receipts';
+    else if (file.fieldname === 'receipt') dest += 'receipts';
     else if (file.fieldname === 'photo') dest += 'students';
     else if (['transcript', 'idDocument'].includes(file.fieldname)) dest += 'admissions';
     else dest += 'profiles';
@@ -31,6 +41,13 @@ const fileFilter = (req, file, cb) => {
   const isImage = ['.jpeg', '.jpg', '.png'].includes(ext) && ['image/jpeg', 'image/jpg', 'image/png'].includes(mime);
   const isPdf = ext === '.pdf' && mime === 'application/pdf';
 
+  if (file.fieldname === 'proof') {
+    if (!PROOF_ALLOWED_MIMES.includes(mime)) {
+      return cb(new Error('Only JPEG, PNG, and WEBP images are allowed'));
+    }
+    return cb(null, true);
+  }
+
   if (file.fieldname === 'photo') {
     if (!isImage) return cb(new Error('Passport photo must be JPG or PNG'));
     return cb(null, true);
@@ -45,10 +62,24 @@ const fileFilter = (req, file, cb) => {
   return cb(null, true);
 };
 
+// Multer instance for proof uploads — 2 MB limit, images only
+const proofLimits = { fileSize: PROOF_MAX_SIZE };
+
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB default limit
+  fileFilter,
+});
+
+// Dedicated upload instance for payment proofs with 2 MB limit
+upload.proof = multer({
+  storage,
+  limits: proofLimits,
   fileFilter,
 });
 
 module.exports = upload;
+module.exports.PROOF_ALLOWED_MIMES = PROOF_ALLOWED_MIMES;
+module.exports.PROOF_MAX_SIZE = PROOF_MAX_SIZE;
+module.exports.isProofMimeAllowed = isProofMimeAllowed;
+module.exports.isProofSizeAllowed = isProofSizeAllowed;

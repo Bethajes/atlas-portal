@@ -380,6 +380,14 @@ const getInstructorSchedule = async (req, res) => {
 const createSemester = async (req, res) => {
   try {
     const { name, type, year, startDate, endDate, registrationStart, registrationEnd, dropDeadline, addDeadline } = req.body;
+
+    if (registrationStart && registrationEnd && new Date(registrationStart) >= new Date(registrationEnd)) {
+      return res.status(400).json({ success: false, message: 'registrationStart must be before registrationEnd' });
+    }
+    if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+      return res.status(400).json({ success: false, message: 'startDate must be before endDate' });
+    }
+
     const semester = await prisma.academicSemester.create({
       data: {
         id: crypto.randomUUID(),

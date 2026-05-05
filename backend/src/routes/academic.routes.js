@@ -20,6 +20,23 @@ router.put('/semesters/:id', authenticateToken, authorizeRoles('ADMIN', 'REGISTR
   try {
     const { id } = req.params;
     const updates = { ...req.body };
+
+    // Resolve date values for validation (use existing record values if not provided)
+    const existing = await prisma.academicSemester.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ success: false, message: 'Semester not found' });
+
+    const regStart = updates.registrationStart ? new Date(updates.registrationStart) : existing.registrationStart;
+    const regEnd = updates.registrationEnd ? new Date(updates.registrationEnd) : existing.registrationEnd;
+    const start = updates.startDate ? new Date(updates.startDate) : existing.startDate;
+    const end = updates.endDate ? new Date(updates.endDate) : existing.endDate;
+
+    if (regStart >= regEnd) {
+      return res.status(400).json({ success: false, message: 'registrationStart must be before registrationEnd' });
+    }
+    if (start >= end) {
+      return res.status(400).json({ success: false, message: 'startDate must be before endDate' });
+    }
+
     const dateFields = ['startDate', 'endDate', 'registrationStart', 'registrationEnd', 'dropDeadline', 'addDeadline'];
     dateFields.forEach(f => { if (updates[f]) updates[f] = new Date(updates[f]); });
     if (updates.year) updates.year = parseInt(updates.year);
@@ -32,8 +49,10 @@ router.put('/semesters/:id', authenticateToken, authorizeRoles('ADMIN', 'REGISTR
 router.patch('/semesters/:id/activate', authenticateToken, authorizeRoles('ADMIN', 'REGISTRAR'), async (req, res) => {
   const prisma = require('../services/prisma');
   try {
-    await prisma.academicSemester.updateMany({ where: { isActive: true }, data: { isActive: false } });
-    const semester = await prisma.academicSemester.update({ where: { id: req.params.id }, data: { isActive: true } });
+    const semester = await prisma.$transaction(async (tx) => {
+      await tx.academicSemester.updateMany({ data: { isActive: false } });
+      return tx.academicSemester.update({ where: { id: req.params.id }, data: { isActive: true } });
+    });
     res.json({ success: true, data: semester });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });

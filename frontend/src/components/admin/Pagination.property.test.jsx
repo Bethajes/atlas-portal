@@ -1,33 +1,62 @@
+import React from 'react';
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
 import { render, screen } from '@testing-library/react';
-import Pagination, { paginatedItems } from './Pagination';
+import Pagination from './Pagination';
 
-describe('Pagination slice (Property 7)', () => {
-  it('paginatedItems returns correct length', () => {
+/**
+ * Feature: admin-dashboard-upgrade, Property 7: Pagination shows correct slice of records
+ * Validates: Requirements 16.1, 16.2, 16.5
+ */
+describe('Pagination - Property 7: Pagination shows correct slice of records', () => {
+  it('shows correct "Showing X–Y of Z" label for any total, page, and pageSize', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 200 }),
-        fc.integer({ min: 1, max: 10 }),
         fc.constantFrom(10, 20, 50),
-        (total, page, pageSize) => {
-          const list = Array.from({ length: total }, (_, i) => ({ id: i }));
-          const slice = paginatedItems(list, page, pageSize);
-          const start = (Math.max(1, page) - 1) * pageSize;
-          const expectLen = Math.max(0, Math.min(pageSize, total - start));
-          expect(slice.length).toBe(expectLen);
+        fc.integer({ min: 1, max: 20 }),
+        (total, pageSize, page) => {
+          // Ensure page is within valid range
+          const totalPages = Math.ceil(total / pageSize);
+          const validPage = Math.min(page, totalPages);
+          
+          const { container } = render(
+            <Pagination 
+              total={total} 
+              page={validPage} 
+              pageSize={pageSize} 
+              onPageChange={() => {}} 
+              onPageSizeChange={() => {}} 
+            />
+          );
+          
+          // Calculate expected values
+          const expectedStart = total === 0 ? 0 : (validPage - 1) * pageSize + 1;
+          const expectedEnd = Math.min(validPage * pageSize, total);
+          
+          // Find the text content
+          const text = container.textContent;
+          
+          // Assert the label contains the correct values
+          const expectedText = `Showing ${expectedStart}–${expectedEnd} of ${total}`;
+          expect(text).toContain(expectedText);
         }
       ),
-      { numRuns: 40 }
+      { numRuns: 100 }
     );
   });
 
-  it('shows correct range label', () => {
-    render(
-      <Pagination total={25} page={2} pageSize={10} onPageChange={() => {}} onPageSizeChange={() => {}} />
+  it('shows "Showing 0–0 of 0" when total is 0', () => {
+    const { container } = render(
+      <Pagination 
+        total={0} 
+        page={1} 
+        pageSize={10} 
+        onPageChange={() => {}} 
+        onPageSizeChange={() => {}} 
+      />
     );
-    expect(screen.getByText(/Showing/)).toHaveTextContent('11');
-    expect(screen.getByText(/Showing/)).toHaveTextContent('20');
-    expect(screen.getByText(/Showing/)).toHaveTextContent('25');
+    
+    expect(container.textContent).toContain('Showing 0–0 of 0');
   });
 });

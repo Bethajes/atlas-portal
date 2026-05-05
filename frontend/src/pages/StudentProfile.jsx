@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
-import { User, Mail, Building2, GraduationCap, CheckCircle2, PencilLine } from 'lucide-react';
+import { Mail, Building2, GraduationCap, CheckCircle2, PencilLine, Save } from 'lucide-react';
+import StudentPortalLayout from '../components/StudentPortalLayout';
 
 export default function StudentProfile() {
   const [profile, setProfile] = useState(null);
@@ -77,15 +78,44 @@ export default function StudentProfile() {
     }
   };
 
-  if (loading) return <div className="p-8 text-gray-500">Loading profile...</div>;
-  if (!profile && error) return <div className="p-8 text-red-600">{error}</div>;
+  if (loading) {
+    return (
+      <StudentPortalLayout title="Student profile" subtitle="Manage your academic identity and contact record">
+        <div className="max-w-4xl space-y-4">
+          <div className="h-32 rounded-2xl bg-slate-200 animate-pulse" />
+          <div className="h-72 rounded-2xl bg-white border border-slate-200 animate-pulse" />
+        </div>
+      </StudentPortalLayout>
+    );
+  }
+
+  if (!profile && error) {
+    return (
+      <StudentPortalLayout title="Student profile" subtitle="Manage your academic identity and contact record">
+        <div className="max-w-xl rounded-xl border border-red-200 bg-red-50 text-red-700 p-5 text-sm">{error}</div>
+      </StudentPortalLayout>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+    <StudentPortalLayout
+      title="Student profile"
+      subtitle="Manage your academic identity and contact record"
+      actions={
+        <button
+          type="button"
+          onClick={() => setShowEditor((s) => !s)}
+          className="inline-flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-lg border border-indigo-100 bg-indigo-50 text-indigo-700 font-semibold text-sm hover:bg-indigo-100 transition"
+        >
+          <PencilLine className="w-4 h-4" />
+          <span className="hidden sm:inline">{showEditor ? 'Close editor' : 'Edit profile'}</span>
+        </button>
+      }
+    >
+      <div className="max-w-4xl bg-white rounded-2xl border border-slate-200 shadow-sm p-5 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
           <div className="flex items-center gap-5">
-            <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+            <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden border-4 border-white shadow-sm ring-1 ring-slate-200">
               {(profile?.photoUrl || profile?.profileImage) && !imageFailed ? (
                 <img
                   src={`${apiHost}${profile.photoUrl || profile.profileImage}`}
@@ -95,22 +125,14 @@ export default function StudentProfile() {
                 />
               ) : null}
               {(!(profile?.photoUrl || profile?.profileImage) || imageFailed) ? (
-                <span className="text-blue-700 font-black text-xl">{initials}</span>
+                <span className="text-indigo-700 font-black text-xl">{initials}</span>
               ) : null}
             </div>
             <div>
-              <h2 className="text-2xl font-black text-gray-900">{profile?.fullName || 'Student'}</h2>
-              <p className="text-sm text-gray-500 font-medium">Active Student</p>
+              <h2 className="text-2xl font-black text-slate-900">{profile?.fullName || 'Student'}</h2>
+              <p className="text-sm text-slate-500 font-medium">{profile?.studentId || 'Active student'}</p>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={() => setShowEditor((s) => !s)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-blue-100 bg-blue-50 text-blue-700 font-bold text-sm hover:bg-blue-100 transition"
-          >
-            <PencilLine className="w-4 h-4" /> {showEditor ? 'Close Editor' : 'Edit Profile'}
-          </button>
         </div>
 
         <div className="mb-8">
@@ -118,30 +140,30 @@ export default function StudentProfile() {
             <p className="text-xs font-black text-gray-500 uppercase tracking-widest">Profile Completion</p>
             <p className="text-sm font-bold text-gray-700">{profilePercent}%</p>
           </div>
-          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${profilePercent}%` }} />
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full bg-indigo-500 rounded-full transition-all" style={{ width: `${profilePercent}%` }} />
           </div>
         </div>
 
         {showEditor && (
-          <form onSubmit={onSave} className="mb-8 p-5 rounded-2xl border border-gray-100 bg-gray-50 space-y-4">
-            <h3 className="text-sm font-black text-gray-700 uppercase tracking-widest">Update Profile</h3>
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+          <form onSubmit={onSave} className="mb-8 p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-4">
+            <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest">Update profile</h3>
+            {error ? <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+            {success ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{success}</p> : null}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input
                 type="text"
                 value={form.firstName}
                 onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
-                placeholder="First Name"
-                className="px-3 py-2.5 rounded-xl border border-gray-100 bg-white text-sm font-medium outline-none"
+                placeholder="First name"
+                className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-medium outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50"
               />
               <input
                 type="text"
                 value={form.fatherName}
                 onChange={(e) => setForm((prev) => ({ ...prev, fatherName: e.target.value }))}
-                placeholder="Father Name"
-                className="px-3 py-2.5 rounded-xl border border-gray-100 bg-white text-sm font-medium outline-none"
+                placeholder="Father name"
+                className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-medium outline-none focus:border-indigo-300 focus:ring-4 focus:ring-indigo-50"
               />
             </div>
             <div>
@@ -156,28 +178,29 @@ export default function StudentProfile() {
             <button
               type="submit"
               disabled={saving}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 disabled:opacity-50"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              <Save className="w-4 h-4" />
+              {saving ? 'Saving...' : 'Save changes'}
             </button>
           </form>
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
             <p className="flex items-center gap-2 text-gray-700"><Mail className="w-4 h-4" /> {profile?.institutionalEmail || 'N/A'}</p>
           </div>
-          <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
             <p className="flex items-center gap-2 text-gray-700"><CheckCircle2 className="w-4 h-4" /> Active Student</p>
           </div>
-          <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
             <p className="flex items-center gap-2 text-gray-700"><Building2 className="w-4 h-4" /> {profile?.department?.name || 'Not Assigned'}</p>
           </div>
-          <div className="p-4 rounded-2xl border border-gray-100 bg-gray-50">
+          <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
             <p className="flex items-center gap-2 text-gray-700"><GraduationCap className="w-4 h-4" /> {profile?.program?.name || 'Not Assigned'}</p>
           </div>
         </div>
       </div>
-    </div>
+    </StudentPortalLayout>
   );
 }

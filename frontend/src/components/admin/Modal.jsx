@@ -1,44 +1,60 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
-export default function Modal({ isOpen, onClose, title, subtitle, accentColor = 'slate', children }) {
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  accentColor = 'blue',
+  children,
+}) {
   useEffect(() => {
     if (!isOpen) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.();
+
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  const accentBar = {
-    slate: 'bg-slate-900',
-    emerald: 'bg-emerald-600',
-    amber: 'bg-amber-600',
-    blue: 'bg-blue-600',
-    red: 'bg-red-600',
-  }[accentColor] || 'bg-slate-900';
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-      role="presentation"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose?.();
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={handleBackdropClick}
     >
-      <div
-        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-200"
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className={`${accentBar} p-6 text-white rounded-t-2xl`}>
-          <h3 className="text-xl font-bold">{title}</h3>
-          {subtitle ? <p className="text-sm opacity-90 mt-1">{subtitle}</p> : null}
+      <div className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+        {/* Header */}
+        {(title || subtitle) && (
+          <div className={`px-6 pt-6 pb-4 border-b border-gray-200`}>
+            {title && (
+              <h2 className={`text-xl font-bold text-gray-900`}>
+                {title}
+              </h2>
+            )}
+            {subtitle && (
+              <p className="mt-1 text-sm text-gray-600">
+                {subtitle}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="px-6 py-4">
+          {children}
         </div>
-        <div className="p-6">{children}</div>
       </div>
     </div>
   );

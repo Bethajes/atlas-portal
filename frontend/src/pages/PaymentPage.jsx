@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
-import Navbar from '../components/Navbar';
+import { CheckCircle2, CreditCard, ReceiptText, RefreshCw, WalletCards } from 'lucide-react';
+import StudentPortalLayout from '../components/StudentPortalLayout';
 
 const StatusBadge = ({ status }) => {
   const map = {
@@ -84,17 +85,11 @@ export default function PaymentPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="max-w-3xl mx-auto p-6 space-y-6">
-
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Tuition payment</h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Pay via Awash Bank or Telebirr using your reference number
-          </p>
-        </div>
-
+    <StudentPortalLayout
+      title="Tuition payment"
+      subtitle="Pay via Awash Bank or Telebirr using your reference number"
+    >
+      <div className="max-w-4xl space-y-6">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
             {error}
@@ -103,17 +98,24 @@ export default function PaymentPage() {
 
         {/* Active semester info */}
         {activeSemester && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between">
-            <div>
+          <div className="bg-white rounded-2xl border border-gray-200 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Current semester</p>
               <p className="font-semibold text-gray-800">{activeSemester.name}</p>
+              </div>
             </div>
             {hasPaidThisSemester ? (
-              <span className="text-sm bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium">
+              <span className="inline-flex items-center justify-center gap-2 text-sm bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium">
+                <CheckCircle2 className="w-4 h-4" />
                 Paid
               </span>
             ) : (
-              <span className="text-sm bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg font-medium">
+              <span className="inline-flex items-center justify-center gap-2 text-sm bg-yellow-100 text-yellow-700 px-4 py-2 rounded-lg font-medium">
+                <WalletCards className="w-4 h-4" />
                 Payment required
               </span>
             )}
@@ -122,7 +124,7 @@ export default function PaymentPage() {
 
         {/* ── STEP: OVERVIEW ── */}
         {step === 'overview' && !hasPaidThisSemester && (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
             <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
               <h2 className="font-medium text-gray-700 text-sm">How to pay</h2>
             </div>
@@ -151,8 +153,9 @@ export default function PaymentPage() {
                 <button
                   onClick={handleInitiate}
                   disabled={processing || !activeSemester}
-                  className="w-full bg-gray-800 text-white rounded-lg py-3 text-sm font-medium hover:bg-gray-700 disabled:opacity-50"
+                  className="w-full inline-flex items-center justify-center gap-2 bg-slate-800 text-white rounded-lg py-3 text-sm font-medium hover:bg-slate-700 disabled:opacity-50"
                 >
+                  {processing ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ReceiptText className="w-4 h-4" />}
                   {processing ? 'Generating...' : 'Generate reference number'}
                 </button>
               </div>
@@ -162,7 +165,7 @@ export default function PaymentPage() {
 
         {/* ── STEP: INITIATED — show reference number ── */}
         {step === 'initiated' && pendingPayment && (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
             <div className="px-5 py-4 border-b border-gray-100 bg-gray-50">
               <h2 className="font-medium text-gray-700 text-sm">Your reference number</h2>
             </div>
@@ -219,7 +222,7 @@ export default function PaymentPage() {
 
         {/* ── STEP: DONE — success ── */}
         {step === 'done' && result && (
-          <div className="bg-white rounded-xl border border-green-200 overflow-hidden">
+          <div className="bg-white rounded-2xl border border-green-200 overflow-hidden shadow-sm">
             <div className="px-5 py-4 border-b border-green-100 bg-green-50">
               <h2 className="font-medium text-green-700 text-sm">Payment verified</h2>
             </div>
@@ -260,7 +263,7 @@ export default function PaymentPage() {
         )}
 
         {/* ── PAYMENT HISTORY ── */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
           <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
             <h2 className="font-medium text-gray-700 text-sm">Payment history</h2>
           </div>
@@ -269,48 +272,49 @@ export default function PaymentPage() {
           ) : payments.length === 0 ? (
             <p className="text-center text-gray-400 text-sm py-8">No payment history yet.</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-xs text-gray-400 uppercase border-b border-gray-100">
-                  <th className="text-left px-5 py-2 font-medium">Reference</th>
-                  <th className="text-left px-3 py-2 font-medium">Semester</th>
-                  <th className="text-center px-3 py-2 font-medium">Amount</th>
-                  <th className="text-left px-3 py-2 font-medium">Bank TX ID</th>
-                  <th className="text-center px-3 py-2 font-medium">Status</th>
-                  <th className="text-center px-3 py-2 font-medium">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map(p => (
-                  <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="px-5 py-3 font-mono text-xs text-gray-700">
-                      {p.referenceNumber}
-                    </td>
-                    <td className="px-3 py-3 text-gray-500 text-xs">
-                      {p.invoice?.semester?.name ?? '—'}
-                    </td>
-                    <td className="text-center px-3 py-3 font-medium text-gray-700">
-                      ETB {p.amount?.toLocaleString()}
-                    </td>
-                    <td className="px-3 py-3 font-mono text-xs text-gray-400">
-                      {p.bankTransactionId ?? '—'}
-                    </td>
-                    <td className="text-center px-3 py-3">
-                      <StatusBadge status={p.status} />
-                    </td>
-                    <td className="text-center px-3 py-3 text-xs text-gray-400">
-                      {p.paymentDate
-                        ? new Date(p.paymentDate).toLocaleDateString()
-                        : new Date(p.createdAt).toLocaleDateString()}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead>
+                  <tr className="text-xs text-gray-400 uppercase border-b border-gray-100">
+                    <th className="text-left px-5 py-2 font-medium">Reference</th>
+                    <th className="text-left px-3 py-2 font-medium">Semester</th>
+                    <th className="text-center px-3 py-2 font-medium">Amount</th>
+                    <th className="text-left px-3 py-2 font-medium">Bank TX ID</th>
+                    <th className="text-center px-3 py-2 font-medium">Status</th>
+                    <th className="text-center px-3 py-2 font-medium">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {payments.map(p => (
+                    <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <td className="px-5 py-3 font-mono text-xs text-gray-700">
+                        {p.referenceNumber}
+                      </td>
+                      <td className="px-3 py-3 text-gray-500 text-xs">
+                        {p.invoice?.semester?.name ?? '—'}
+                      </td>
+                      <td className="text-center px-3 py-3 font-medium text-gray-700">
+                        ETB {p.amount?.toLocaleString()}
+                      </td>
+                      <td className="px-3 py-3 font-mono text-xs text-gray-400">
+                        {p.bankTransactionId ?? '—'}
+                      </td>
+                      <td className="text-center px-3 py-3">
+                        <StatusBadge status={p.status} />
+                      </td>
+                      <td className="text-center px-3 py-3 text-xs text-gray-400">
+                        {p.paymentDate
+                          ? new Date(p.paymentDate).toLocaleDateString()
+                          : new Date(p.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
-
       </div>
-    </div>
+    </StudentPortalLayout>
   );
 }

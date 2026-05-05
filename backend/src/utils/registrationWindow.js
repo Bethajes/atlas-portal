@@ -13,7 +13,12 @@ function getRegistrationState(semester) {
   }
   const now = new Date();
   const regStart = new Date(semester.registrationStart);
-  const regEnd = new Date(semester.registrationEnd);
+
+  // Treat registrationEnd as inclusive: extend to end-of-day (23:59:59.999)
+  // so that a date stored as midnight still covers the full calendar day.
+  const regEndRaw = new Date(semester.registrationEnd);
+  const regEnd = new Date(regEndRaw);
+  regEnd.setHours(23, 59, 59, 999);
 
   if (now < regStart) {
     const daysUntilOpen = Math.ceil((regStart - now) / (1000 * 60 * 60 * 24));

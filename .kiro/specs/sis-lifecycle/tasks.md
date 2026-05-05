@@ -1,28 +1,28 @@
 # Implementation Plan
 
-- [ ] 1. Fix semester date validation in the backend
+- [x] 1. Fix semester date validation in the backend
   - Add validation in `academic.controller.js` `createSemester` to reject requests where `registrationStart >= registrationEnd` or `startDate >= endDate`, returning a 400 with a descriptive message
   - Apply the same validation to the inline `PUT /academic/semesters/:id` route handler
   - _Requirements: 1.5_
 
-- [ ]* 1.1 Write property test for semester date constraint enforcement
+- [x] 1.1 Write property test for semester date constraint enforcement
   - **Property 17: Semester date constraint enforcement**
   - **Validates: Requirements 1.5**
 
-- [ ] 2. Fix semester activation exclusivity
+- [x] 2. Fix semester activation exclusivity
   - Verify the `PATCH /academic/semesters/:id/activate` handler deactivates all others atomically; add a test to confirm exactly one semester is active after activation
   - _Requirements: 1.3_
 
-- [ ]* 2.1 Write property test for semester activation exclusivity
+- [x] 2.1 Write property test for semester activation exclusivity
   - **Property 18: Semester activation exclusivity**
   - **Validates: Requirements 1.3**
 
-- [ ] 3. Harden registration window utility and enforcement
+- [x] 3. Harden registration window utility and enforcement
   - Review `utils/registrationWindow.js` `getRegistrationState` for off-by-one on boundary dates (inclusive end)
   - Ensure `saveDraft` and `confirmRegistration` in `registration.controller.js` both call `getRegistrationState` and return the full `registration` object in the 403 response
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ]* 3.1 Write property test for registration window state correctness
+- [x] 3.1 Write property test for registration window state correctness
   - **Property 1: Registration window state correctness**
   - **Validates: Requirements 2.1, 2.2, 2.3**
 

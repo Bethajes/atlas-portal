@@ -201,7 +201,7 @@ const saveDraft = asyncHandler(async (req, res) => {
   if (regState.state !== 'OPEN') {
     return res.status(403).json({
       success: false,
-      message: regState.state === 'UPCOMING' ? regState.message : 'Registration is closed for this semester.',
+      message: regState.message,
       registration: regState,
     });
   }
@@ -398,7 +398,7 @@ const confirmRegistration = asyncHandler(async (req, res) => {
   if (regState.state !== 'OPEN') {
     return res.status(403).json({
       success: false,
-      message: regState.state === 'UPCOMING' ? regState.message : 'Registration is closed for this semester.',
+      message: regState.message,
       registration: regState,
     });
   }

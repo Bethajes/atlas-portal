@@ -1,26 +1,36 @@
+import React from 'react';
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { render, screen } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import Button from './Button';
 
+/**
+ * Feature: admin-dashboard-upgrade, Property 1: Button variant renders correct classes
+ * Validates: Requirements 1.3, 1.4, 1.5, 2.1
+ */
 describe('Button variant classes (Property 1)', () => {
   it('maps variants to expected Tailwind tokens', () => {
     fc.assert(
       fc.property(fc.constantFrom('primary', 'secondary', 'danger'), (variant) => {
-        render(<Button variant={variant}>X</Button>);
-        const btn = screen.getByRole('button', { name: 'X' });
+        cleanup(); // Clean up previous renders
+        const { container } = render(<Button variant={variant}>Test Button</Button>);
+        const btn = container.querySelector('button');
+        
         if (variant === 'primary') {
           expect(btn.className).toMatch(/bg-blue-600/);
           expect(btn.className).toMatch(/hover:bg-blue-700/);
+          expect(btn.className).toMatch(/text-white/);
         } else if (variant === 'secondary') {
           expect(btn.className).toMatch(/bg-gray-100/);
           expect(btn.className).toMatch(/hover:bg-gray-200/);
-        } else {
+          expect(btn.className).toMatch(/text-gray-700/);
+        } else if (variant === 'danger') {
           expect(btn.className).toMatch(/bg-red-500/);
           expect(btn.className).toMatch(/hover:bg-red-600/);
+          expect(btn.className).toMatch(/text-white/);
         }
       }),
-      { numRuns: 30 }
+      { numRuns: 100 }
     );
   });
 });

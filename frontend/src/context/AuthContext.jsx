@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await api.post('/auth/login', {
+        email,
         institutionalEmail: email,
         password,
       });
