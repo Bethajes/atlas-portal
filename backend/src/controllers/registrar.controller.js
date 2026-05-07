@@ -876,6 +876,76 @@ const processApplication = async (req, res) => {
  * @route   GET /api/registrar/students
  * @access  Private (Registrar, Admin)
  */
+/**
+ * @desc    Get students who have not paid for the active semester
+ * @route   GET /api/registrar/students/unpaid
+ * @access  Private (Registrar, Admin)
+ */
+const getUnpaidStudents = async (req, res) => {
+  try {
+    const activeSemester = await prisma.academicSemester.findFirst({
+      where: { isActive: true },
+    });
+
+    if (!activeSemester) {
+      return res.status(200).json({ success: true, count: 0, data: [], message: 'No active semester found' });
+    }
+
+    // Unpaid students are those who have a registration for the active semester
+    // but haven't marked it as paid, OR have an invoice that is not PAID/SUCCESSFUL.
+    const unpaidStudents = await prisma.student.findMany({
+      where: {
+        status: 'ACTIVE',
+        OR: [
+          {
+            semesterRegistration: {
+              some: {
+                semesterId: activeSemester.id,
+                isPaid: false,
+              },
+            },
+          },
+          {
+            invoice: {
+              some: {
+                semesterId: activeSemester.id,
+                status: { notIn: ['PAID', 'SUCCESSFUL'] },
+              },
+            },
+          },
+        ],
+      },
+      include: {
+        user: { select: { name: true, institutionalEmail: true } },
+        program: { select: { name: true, code: true } },
+        department: { select: { name: true, code: true } },
+        semesterRegistration: {
+          where: { semesterId: activeSemester.id },
+          select: { status: true, isPaid: true, totalCredits: true },
+        },
+        invoice: {
+          where: { semesterId: activeSemester.id },
+          select: { invoiceNumber: true, totalAmount: true, dueAmount: true, status: true },
+        },
+        studentPayments: {
+          where: { status: 'PENDING' },
+          select: { reference: true, amount: true, createdAt: true },
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      count: unpaidStudents.length,
+      data: unpaidStudents,
+      activeSemester: activeSemester.name,
+    });
+  } catch (error) {
+    console.error('Get unpaid students error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const getStudents = async (req, res) => {
   try {
     const { search, status, programId } = req.query;
@@ -921,6 +991,7 @@ const getDashboardStats = async (req, res) => {
       pendingApplications,
       totalPaymentsThisSemester,
       activeSemester,
+      unpaidStudentsCount,
     ] = await Promise.all([
       prisma.student.count(),
       prisma.semesterRegistration.count({ where: { status: 'SUBMITTED' } }),
@@ -932,6 +1003,27 @@ const getDashboardStats = async (req, res) => {
         _sum: { amount: true },
       }),
       prisma.academicSemester.findFirst({ where: { isActive: true } }),
+      prisma.student.count({
+        where: {
+          status: 'ACTIVE',
+          OR: [
+            {
+              semesterRegistration: {
+                some: {
+                  isPaid: false,
+                },
+              },
+            },
+            {
+              invoice: {
+                some: {
+                  status: { notIn: ['PAID', 'SUCCESSFUL'] },
+                },
+              },
+            },
+          ],
+        },
+      }),
     ]);
 
     const studentsByProgram = await prisma.student.groupBy({
@@ -957,6 +1049,7 @@ const getDashboardStats = async (req, res) => {
         totalStudents,
         pendingRegistrations,
         pendingApplications,
+        unpaidStudentsCount,
         paymentsThisMonth: totalPaymentsThisSemester._sum.amount || 0,
         activeSemester: activeSemester?.name || 'No active semester',
         registrationOpen: regState?.state === 'OPEN',
@@ -1158,6 +1251,7 @@ module.exports = {
   getApplications,
   processApplication,
   getStudents,
+  getUnpaidStudents,
   getDashboardStats,
   progressStudentHandler,
   graduateStudentHandler,

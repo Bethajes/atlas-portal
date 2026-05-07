@@ -95,7 +95,49 @@ const createAnnouncement = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Get announcements relevant to current instructor
+ * @route   GET /api/announcements/instructor
+ * @access  Private (Instructor)
+ */
+const getInstructorAnnouncements = async (req, res) => {
+  try {
+    const instructor = await prisma.instructor.findUnique({ where: { userId: req.user.id } });
+    if (!instructor) {
+      return res.status(404).json({ success: false, message: 'Instructor profile not found' });
+    }
+
+    const sections = await prisma.section.findMany({
+      where: { instructorId: instructor.id },
+      select: { courseId: true },
+    });
+    const courseIds = Array.from(new Set(sections.map((s) => s.courseId)));
+
+    const announcements = await prisma.announcement.findMany({
+      where: {
+        OR: [
+          { isGlobal: true },
+          { authorId: req.user.id },
+          ...(courseIds.length ? [{ courseId: { in: courseIds } }] : []),
+        ],
+      },
+      include: {
+        User: { select: { name: true, role: true } },
+        Course: { select: { code: true, title: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    return res.status(200).json({ success: true, count: announcements.length, data: announcements });
+  } catch (error) {
+    console.error('Get instructor announcements error:', error);
+    return res.status(500).json({ success: false, message: 'Server error while fetching announcements' });
+  }
+};
+
 module.exports = {
   getStudentAnnouncements,
+  getInstructorAnnouncements,
   createAnnouncement,
 };

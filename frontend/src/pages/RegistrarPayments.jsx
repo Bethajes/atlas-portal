@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { 
   CreditCard, 
@@ -26,27 +26,47 @@ import {
 
 const RegistrarPayments = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialStatus = searchParams.get('status') || 'PENDING';
+
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [filterStatus, setFilterStatus] = useState('PENDING');
+  const [filterStatus, setFilterStatus] = useState(initialStatus);
   const [searchTerm, setSearchTerm] = useState('');
+  const [unpaidStudents, setUnpaidStudents] = useState([]);
 
   useEffect(() => {
-    fetchPayments();
+    if (filterStatus === 'UNPAID') {
+      fetchUnpaidStudents();
+    } else {
+      fetchPayments();
+    }
   }, [filterStatus]);
 
   const fetchPayments = async () => {
     try {
       setLoading(true);
-      // Using the base /api/payments route for all payments
       const response = await api.get(`/payments?status=${filterStatus}`);
       setPayments(response.data.payments || []);
     } catch (error) {
       console.error('Failed to fetch payments:', error);
       showMessage('error', 'Failed to load payments');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUnpaidStudents = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/registrar/students/unpaid');
+      setUnpaidStudents(response.data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch unpaid students:', error);
+      showMessage('error', 'Failed to load unpaid students');
     } finally {
       setLoading(false);
     }
@@ -80,7 +100,12 @@ const RegistrarPayments = () => {
     p.student?.studentId?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading && payments.length === 0) {
+  const filteredUnpaidStudents = unpaidStudents.filter(s =>
+    s.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    s.studentId?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading && payments.length === 0 && unpaidStudents.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -117,10 +142,13 @@ const RegistrarPayments = () => {
               />
             </div>
             <div className="bg-white p-1 rounded-xl border border-gray-200 flex shadow-sm">
-              {['PENDING', 'SUCCESSFUL', 'FAILED'].map((status) => (
+              {['PENDING', 'SUCCESSFUL', 'FAILED', 'UNPAID'].map((status) => (
                 <button
                   key={status}
-                  onClick={() => setFilterStatus(status)}
+                  onClick={() => {
+                    setFilterStatus(status);
+                    setSelectedPayment(null);
+                  }}
                   className={`px-4 py-2 rounded-lg text-[10px] font-black transition-all ${
                     filterStatus === status 
                       ? 'bg-blue-600 text-white shadow-md' 
@@ -147,40 +175,75 @@ const RegistrarPayments = () => {
           
           {/* Payments List */}
           <div className="lg:col-span-1 space-y-4 overflow-y-auto max-h-[calc(100vh-250px)] pr-2 custom-scrollbar">
-            {filteredPayments.length === 0 ? (
-              <div className="bg-white rounded-2xl p-12 border border-dashed border-gray-200 text-center">
-                <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-400 font-medium">No {filterStatus.toLowerCase()} payments found.</p>
-              </div>
-            ) : (
-              filteredPayments.map((payment) => (
-                <div 
-                  key={payment.id}
-                  onClick={() => setSelectedPayment(payment)}
-                  className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
-                    selectedPayment?.id === payment.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">
-                      {payment.referenceNumber}
-                    </span>
-                    <span className="text-[10px] text-gray-400 font-bold">
-                      {new Date(payment.createdAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{payment.student?.user?.name}</h3>
-                  <div className="flex items-center justify-between mt-4 border-t border-gray-50 pt-3">
-                    <span className="text-sm font-black text-gray-900">{payment.amount.toLocaleString()} ETB</span>
-                    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${
-                      payment.status === 'SUCCESSFUL' ? 'bg-emerald-50 text-emerald-600' : 
-                      payment.status === 'FAILED' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
-                    }`}>
-                      {payment.status}
-                    </span>
-                  </div>
+            {filterStatus === 'UNPAID' ? (
+              filteredUnpaidStudents.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 border border-dashed border-gray-200 text-center">
+                  <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-400 font-medium">No unpaid students found.</p>
                 </div>
-              ))
+              ) : (
+                filteredUnpaidStudents.map((student) => (
+                  <div 
+                    key={student.id}
+                    onClick={() => setSelectedPayment({ ...student, isUnpaidStudent: true })}
+                    className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
+                      selectedPayment?.id === student.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <span className="text-[10px] font-black text-red-600 uppercase tracking-widest bg-red-50 px-2 py-1 rounded">
+                        UNPAID
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-bold">
+                        {student.program?.code}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{student.user?.name}</h3>
+                    <div className="flex items-center justify-between mt-4 border-t border-gray-50 pt-3">
+                      <span className="text-sm font-black text-gray-900">{student.studentId}</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-red-50 text-red-600">
+                        {student.invoice?.[0]?.status || 'NO INVOICE'}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )
+            ) : (
+              filteredPayments.length === 0 ? (
+                <div className="bg-white rounded-2xl p-12 border border-dashed border-gray-200 text-center">
+                  <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-400 font-medium">No {filterStatus.toLowerCase()} payments found.</p>
+                </div>
+              ) : (
+                filteredPayments.map((payment) => (
+                  <div 
+                    key={payment.id}
+                    onClick={() => setSelectedPayment(payment)}
+                    className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
+                      selectedPayment?.id === payment.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">
+                        {payment.referenceNumber}
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-bold">
+                        {new Date(payment.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{payment.student?.user?.name}</h3>
+                    <div className="flex items-center justify-between mt-4 border-t border-gray-50 pt-3">
+                      <span className="text-sm font-black text-gray-900">{payment.amount.toLocaleString()} ETB</span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${
+                        payment.status === 'SUCCESSFUL' ? 'bg-emerald-50 text-emerald-600' : 
+                        payment.status === 'FAILED' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'
+                      }`}>
+                        {payment.status}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )
             )}
           </div>
 
@@ -195,13 +258,13 @@ const RegistrarPayments = () => {
                         <User className="w-8 h-8 text-white" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-black">{selectedPayment.student?.user?.name}</h2>
+                        <h2 className="text-2xl font-black">{selectedPayment.isUnpaidStudent ? selectedPayment.user?.name : selectedPayment.student?.user?.name}</h2>
                         <p className="text-blue-100 font-medium flex items-center gap-2 mt-1">
-                          ID: {selectedPayment.student?.studentId} • {selectedPayment.paymentMethod}
+                          ID: {selectedPayment.isUnpaidStudent ? selectedPayment.studentId : selectedPayment.student?.studentId} • {selectedPayment.isUnpaidStudent ? 'NO RECENT PAYMENT' : selectedPayment.paymentMethod}
                         </p>
                       </div>
                     </div>
-                    {selectedPayment.status === 'PENDING' && (
+                    {selectedPayment.status === 'PENDING' && !selectedPayment.isUnpaidStudent && (
                       <div className="flex gap-3">
                         <button 
                           onClick={() => handleVerify(selectedPayment.id, 'REJECTED')}
@@ -227,24 +290,57 @@ const RegistrarPayments = () => {
                     {/* Information */}
                     <div className="space-y-8">
                       <div>
-                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Payment Summary</h4>
+                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
+                          {selectedPayment.isUnpaidStudent ? 'Unpaid Status' : 'Payment Summary'}
+                        </h4>
                         <div className="bg-gray-50 rounded-2xl p-6 space-y-4 border border-gray-100">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-500 font-medium">Amount Paid</span>
-                            <span className="text-xl font-black text-blue-600">{selectedPayment.amount.toLocaleString()} ETB</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">Method</span>
-                            <span className="font-bold text-gray-900">{selectedPayment.paymentMethod}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">Reference No.</span>
-                            <span className="font-bold text-gray-900">{selectedPayment.referenceNumber}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="text-gray-500">Date</span>
-                            <span className="font-bold text-gray-900">{new Date(selectedPayment.createdAt).toLocaleString()}</span>
-                          </div>
+                          {selectedPayment.isUnpaidStudent ? (
+                            <>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-500 font-medium">Invoice Amount</span>
+                                <span className="text-xl font-black text-red-600">
+                                  {selectedPayment.invoice?.[0]?.totalAmount?.toLocaleString() || '0'} ETB
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">Amount Due</span>
+                                <span className="font-bold text-red-700">
+                                  {selectedPayment.invoice?.[0]?.dueAmount?.toLocaleString() || '0'} ETB
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">Registration Status</span>
+                                <span className="font-bold text-gray-900">
+                                  {selectedPayment.semesterRegistration?.[0]?.status || 'NOT STARTED'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">Invoice No.</span>
+                                <span className="font-bold text-gray-900">
+                                  {selectedPayment.invoice?.[0]?.invoiceNumber || 'N/A'}
+                                </span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-500 font-medium">Amount Paid</span>
+                                <span className="text-xl font-black text-blue-600">{selectedPayment.amount.toLocaleString()} ETB</span>
+                              </div>
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">Method</span>
+                                <span className="font-bold text-gray-900">{selectedPayment.paymentMethod}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">Reference No.</span>
+                                <span className="font-bold text-gray-900">{selectedPayment.referenceNumber}</span>
+                              </div>
+                              <div className="flex justify-between items-center text-sm">
+                                <span className="text-gray-500">Date</span>
+                                <span className="font-bold text-gray-900">{new Date(selectedPayment.createdAt).toLocaleString()}</span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
 
@@ -260,8 +356,36 @@ const RegistrarPayments = () => {
 
                     {/* Receipt Image */}
                     <div>
-                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Verification Proof</h4>
-                      {selectedPayment.proofUrl ? (
+                      <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
+                        {selectedPayment.isUnpaidStudent ? 'Pending Online Transactions' : 'Proof Document'}
+                      </h4>
+                      {selectedPayment.isUnpaidStudent ? (
+                        <div className="space-y-4">
+                          {selectedPayment.studentPayments?.length > 0 ? (
+                            selectedPayment.studentPayments.map((sp) => (
+                              <div key={sp.reference} className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <p className="text-xs font-black text-amber-700 uppercase tracking-wider mb-1">CHAPA REFERENCE</p>
+                                    <p className="text-sm font-mono font-bold text-gray-900">{sp.reference}</p>
+                                  </div>
+                                  <span className="text-[10px] font-black bg-amber-200 text-amber-800 px-2 py-0.5 rounded">PENDING</span>
+                                </div>
+                                <div className="mt-3 pt-3 border-t border-amber-100 flex justify-between text-sm">
+                                  <span className="text-amber-600">Amount: {sp.amount.toLocaleString()} ETB</span>
+                                  <span className="text-amber-400">{new Date(sp.createdAt).toLocaleDateString()}</span>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="bg-gray-50 rounded-3xl p-12 border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
+                              <AlertCircle className="w-12 h-12 text-gray-300 mb-4" />
+                              <p className="text-gray-400 font-medium">No online payment attempts found for this student.</p>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        selectedPayment.proofUrl ? (
                         <div className="group relative rounded-3xl overflow-hidden border border-gray-200 shadow-sm bg-gray-100 aspect-[4/5]">
                           <img 
                             src={`${import.meta.env.VITE_API_URL}${selectedPayment.proofUrl}`} 
@@ -285,7 +409,7 @@ const RegistrarPayments = () => {
                           <p className="text-gray-400 text-sm font-medium">No receipt image uploaded.</p>
                           <p className="text-[10px] text-gray-300 mt-1 uppercase font-black">Manual entry likely</p>
                         </div>
-                      )}
+                      ))}
                     </div>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, Activity, Stethoscope, Shield, Microscope, Mail, Lock, ChevronRight } from 'lucide-react';
 import atlasLogo from '../assets/atlaslogo.png';
 
 const ROLE_ROUTES = {
@@ -11,339 +11,393 @@ const ROLE_ROUTES = {
   REGISTRAR: '/registrar',
 };
 
-const MedicalCross = () => (
-  <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-    <rect x="10" y="2" width="8" height="24" rx="2" fill="currentColor" />
-    <rect x="2" y="10" width="24" height="8" rx="2" fill="currentColor" />
-  </svg>
-);
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+function FieldError({ id, children }) {
+  if (!children) return null;
+  return (
+    <p id={id} className="mt-2 text-sm text-red-600">
+      {children}
+    </p>
+  );
+}
 
+function AtlasPortalIllustration() {
+  return (
+    <svg
+      viewBox="0 0 800 520"
+      className="w-full max-w-xl"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="g1" x1="94" y1="40" x2="706" y2="500" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#14b8a6" stopOpacity="0.9" />
+          <stop offset="0.55" stopColor="#60a5fa" stopOpacity="0.85" />
+          <stop offset="1" stopColor="#a78bfa" stopOpacity="0.7" />
+        </linearGradient>
+        <linearGradient id="g2" x1="140" y1="120" x2="660" y2="440" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#0f172a" stopOpacity="0.0" />
+          <stop offset="1" stopColor="#0f172a" stopOpacity="0.35" />
+        </linearGradient>
+        <filter id="s1" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="18" stdDeviation="18" floodColor="#000" floodOpacity="0.35" />
+        </filter>
+      </defs>
+
+      <path
+        d="M122 92C170 36 272 14 356 36C446 60 502 32 576 34C680 38 744 118 736 222C728 326 636 388 550 420C472 450 440 498 350 488C258 478 206 446 162 404C108 354 50 294 58 220C66 146 88 132 122 92Z"
+        fill="url(#g1)"
+        opacity="0.35"
+      />
+
+      <g filter="url(#s1)">
+        <rect x="170" y="160" width="460" height="260" rx="24" fill="rgba(255,255,255,0.08)" />
+        <rect x="190" y="180" width="420" height="190" rx="18" fill="rgba(15,23,42,0.65)" />
+        <rect x="190" y="380" width="420" height="20" rx="10" fill="rgba(255,255,255,0.10)" />
+        <path d="M290 406H510" stroke="rgba(255,255,255,0.16)" strokeWidth="10" strokeLinecap="round" />
+      </g>
+
+      <g>
+        <path
+          d="M400 198C334 198 288 226 250 254C288 282 334 310 400 310C466 310 512 282 550 254C512 226 466 198 400 198Z"
+          fill="rgba(255,255,255,0.10)"
+        />
+        <path
+          d="M400 222C356 222 322 240 294 254C322 268 356 286 400 286C444 286 478 268 506 254C478 240 444 222 400 222Z"
+          fill="rgba(20,184,166,0.45)"
+        />
+        <path
+          d="M400 236C384 236 372 244 362 250C372 256 384 264 400 264C416 264 428 256 438 250C428 244 416 236 400 236Z"
+          fill="rgba(255,255,255,0.85)"
+        />
+      </g>
+
+      <g>
+        <path
+          d="M354 122L400 96L446 122V156C446 176 430 192 410 196L400 198L390 196C370 192 354 176 354 156V122Z"
+          fill="rgba(255,255,255,0.10)"
+        />
+        <path d="M400 96L446 122L400 148L354 122L400 96Z" fill="rgba(96,165,250,0.55)" />
+        <path d="M400 148V198" stroke="rgba(255,255,255,0.22)" strokeWidth="6" strokeLinecap="round" />
+        <path
+          d="M460 130C478 138 492 152 492 168C492 184 478 198 460 206"
+          stroke="rgba(255,255,255,0.22)"
+          strokeWidth="6"
+          strokeLinecap="round"
+        />
+      </g>
+
+      <g opacity="0.85">
+        <path d="M612 114C612 92 630 74 652 74C674 74 692 92 692 114C692 136 674 154 652 154C630 154 612 136 612 114Z" fill="rgba(255,255,255,0.08)" />
+        <path d="M652 90V138" stroke="rgba(20,184,166,0.9)" strokeWidth="10" strokeLinecap="round" />
+        <path d="M628 114H676" stroke="rgba(20,184,166,0.9)" strokeWidth="10" strokeLinecap="round" />
+      </g>
+
+      <path d="M170 160H630V420H170V160Z" fill="url(#g2)" opacity="0.9" />
+    </svg>
+  );
+}
+
+export default function Login() {
   const { login, user, authLoading } = useAuth();
   const navigate = useNavigate();
 
+  const [mounted, setMounted] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
+  const [touched, setTouched] = useState({ email: false, password: false });
+
   useEffect(() => {
-    const link = document.createElement('link');
-    link.href =
-      'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Libre+Baskerville:wght@400;600;700&display=swap';
-    link.rel = 'stylesheet';
-    document.head.appendChild(link);
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
   }, []);
 
   useEffect(() => {
     if (!authLoading && user) {
-      navigate(
-        user.isFirstLogin
-          ? '/change-password'
-          : ROLE_ROUTES[user.role] || '/dashboard',
-        { replace: true }
-      );
+      navigate(user.isFirstLogin ? '/change-password' : ROLE_ROUTES[user.role] || '/dashboard', {
+        replace: true,
+      });
     }
   }, [user, authLoading, navigate]);
 
+  const errors = useMemo(() => {
+    const next = {};
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) next.email = 'Email is required.';
+    else if (!isValidEmail(trimmedEmail)) next.email = 'Enter a valid email address.';
+
+    if (!password) next.password = 'Password is required.';
+
+    return next;
+  }, [email, password]);
+
+  const canSubmit = !loading && !authLoading && Object.keys(errors).length === 0;
+  const emailError = touched.email ? errors.email : '';
+  const passwordError = touched.password ? errors.password : '';
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+    setTouched({ email: true, password: true });
+
+    if (Object.keys(errors).length > 0) return;
+
     setLoading(true);
-    setError('');
     try {
-      const result = await login(email, password);
+      const result = await login(email.trim(), password, { rememberMe });
       if (result.success) {
         navigate(
-          result.user.isFirstLogin
-            ? '/change-password'
-            : ROLE_ROUTES[result.user.role] || '/dashboard',
+          result.user.isFirstLogin ? '/change-password' : ROLE_ROUTES[result.user.role] || '/dashboard',
           { replace: true }
         );
       } else {
-        setError(result.error);
+        setFormError(result.error || 'Wrong email or password.');
       }
     } catch {
-      setError('An unexpected error occurred');
+      setFormError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading)
+  if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center gap-4">
-          <div className="text-[#003366] animate-pulse">
-            <MedicalCross />
-          </div>
-          <div className="w-1 h-8 bg-[#003366]/30 rounded animate-pulse" />
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 font-sans">
+        <div className="h-10 w-10 rounded-full border-2 border-slate-300 border-t-teal-600 animate-spin" />
       </div>
     );
+  }
 
   if (user) return null;
 
   return (
-    <div
-      style={{ fontFamily: "'Inter', sans-serif" }}
-      className="min-h-screen flex bg-gray-50"
-    >
-      {/* Left Panel - Medical Background Image with Overlay */}
-      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden">
-        {/* Medical lab background image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1581093588401-fbb62a02f120?q=80&w=2070&auto=format&fit=crop')",
-          }}
-        />
-        {/* Dark overlay with blur */}
-        <div className="absolute inset-0 bg-[#001428]/75 backdrop-blur-[3px]" />
-        {/* Gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#003366]/40 via-[#001a33]/60 to-[#001428]/80" />
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between w-full p-12">
-          {/* Top Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-white/15 backdrop-blur-md rounded-2xl border border-white/20 flex items-center justify-center text-white">
-              <Microscope className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-white font-bold text-base tracking-wide">
-                ATLAS COLLEGE
-              </p>
-              <p className="text-blue-200/80 text-xs font-semibold tracking-widest uppercase">
-                of Health Sciences
-              </p>
-            </div>
+    <div className="min-h-screen font-sans bg-slate-50">
+      <div className="min-h-screen grid lg:grid-cols-2">
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-900 text-white px-6 py-12 sm:px-10">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-teal-500/20 blur-3xl" />
+            <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(148,163,184,0.18)_1px,transparent_0)] [background-size:24px_24px] opacity-40" />
           </div>
 
-          {/* Center Content */}
-          <div className="flex-1 flex flex-col justify-center max-w-lg">
-            <div className="mb-8">
-              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-blue-100 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full backdrop-blur-sm">
-                <Activity className="w-3.5 h-3.5" /> Academic Year 2025–2026
-              </span>
+          <div
+            className={[
+              'relative mx-auto flex h-full w-full max-w-xl flex-col',
+              'transition duration-700 ease-out',
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
+            ].join(' ')}
+          >
+            <div className="flex items-center gap-3">
+              <div className="h-11 w-11 rounded-2xl bg-white/10 ring-1 ring-white/15 flex items-center justify-center overflow-hidden">
+                <img src={atlasLogo} alt="Atlas logo" className="h-8 w-8 object-contain" />
+              </div>
+              <div className="leading-tight">
+                <p className="text-sm font-semibold tracking-wide text-white/90">
+                  Atlas Health College Portal
+                </p>
+                <p className="text-xs text-slate-300">
+                  Secure access for students, faculty, and staff
+                </p>
+              </div>
             </div>
-            <h1
-              style={{ fontFamily: "'Libre Baskerville', serif" }}
-              className="text-5xl xl:text-6xl font-bold text-white leading-[1.15] mb-6"
-            >
-              Where Future
-              <br />
-              <span className="text-blue-200">Healers</span> Begin
-            </h1>
-            <p className="text-blue-100/80 text-lg leading-relaxed mb-10">
-              Access your academic records, course registrations, and clinical
-              resources through our unified health sciences portal.
-            </p>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { icon: Stethoscope, label: 'Health Programs', value: '14+' },
-                { icon: Activity, label: 'Active Students', value: '3,200+' },
-                { icon: Shield, label: 'Years of Excellence', value: '35+' },
-              ].map(({ icon: Icon, label, value }) => (
-                <div
-                  key={label}
-                  className="bg-white/8 border border-white/15 rounded-2xl p-5 backdrop-blur-sm"
-                >
-                  <Icon className="w-5 h-5 text-blue-300 mb-3" />
-                  <p className="text-white font-bold text-xl">{value}</p>
-                  <p className="text-blue-200/70 text-xs font-medium mt-1">
-                    {label}
-                  </p>
-                </div>
-              ))}
+            <div className="mt-10 flex-1 flex flex-col justify-center">
+              <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+                Sign in to your academic workspace.
+              </h1>
+              <p className="mt-4 text-slate-300 leading-relaxed">
+                Manage registrations, view results, and access college services in one place.
+              </p>
+
+              <div className="mt-10">
+                <AtlasPortalIllustration />
+              </div>
+            </div>
+
+            <div className="mt-10 flex items-center gap-2 text-xs text-slate-300">
+              <ShieldCheck className="h-4 w-4 text-teal-300" />
+              <span>Protected with secure authentication and role-based access.</span>
             </div>
           </div>
-
-          {/* Bottom quote */}
-          <p className="text-blue-200/60 text-sm italic font-medium">
-            "Excellence in medical education since 1989"
-          </p>
         </div>
-      </div>
 
-      {/* Right Panel - Clean White Login Card */}
-      <div className="flex-1 flex items-center justify-center p-6 md:p-12 bg-white">
-        <div className="w-full max-w-md">
-          {/* Centered Logo */}
-          <div className="flex flex-col items-center mb-10">
-            <img
-              src={atlasLogo}
-              alt="Atlas College Logo"
-              className="w-20 h-20 object-contain mb-3"
-            />
-            <h2
-              style={{ fontFamily: "'Libre Baskerville', serif" }}
-              className="text-2xl font-bold text-[#003366]"
-            >
-              Atlas College
-            </h2>
-            <p className="text-gray-500 text-sm font-medium">
-              of Health Sciences
-            </p>
-          </div>
-
-          {/* Welcome Text */}
-          <div className="mb-8">
-            <h3
-              style={{ fontFamily: "'Libre Baskerville', serif" }}
-              className="text-3xl font-bold text-gray-900 mb-1"
-            >
-              Welcome back
-            </h3>
-            <p className="text-gray-500 text-sm">
-              Sign in with your institutional credentials to continue.
-            </p>
-          </div>
-
-          {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-sm font-medium p-4 rounded-xl flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
-                {error}
-              </div>
-            )}
-
-            {/* Email Field */}
-            <div>
-              <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
-                Student / Staff Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 pl-11 pr-4 py-3.5 rounded-xl outline-none transition focus:border-[#003366] focus:ring-4 focus:ring-[#003366]/8 text-sm font-medium"
-                  placeholder="name@atlas.edu.et"
-                />
-              </div>
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider">
-                  Password
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs text-sky-500 hover:text-sky-600 font-semibold transition"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 pl-11 pr-4 py-3.5 rounded-xl outline-none transition focus:border-[#003366] focus:ring-4 focus:ring-[#003366]/8 text-sm font-medium"
-                  placeholder="Enter your password"
-                />
-              </div>
-            </div>
-
-            {/* Sign In Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#003366] hover:bg-[#00264d] text-white font-bold py-4 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-[#003366]/20 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Authenticating...
-                </>
-              ) : (
-                <>
-                  Sign In <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-
-            {/* SSO Option */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-3 text-gray-400 font-semibold tracking-wider">
-                  or continue with
-                </span>
-              </div>
-            </div>
-
-            {/* Microsoft SSO Button */}
-            <button
-              type="button"
-              className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 font-semibold py-3.5 rounded-xl transition flex items-center justify-center gap-3 text-sm"
-            >
-              <svg
-                className="w-5 h-5"
-                viewBox="0 0 21 21"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M10 1H1V10H10V1Z" fill="#F25022" />
-                <path d="M20 1H11V10H20V1Z" fill="#7FBA00" />
-                <path d="M10 11H1V20H10V11Z" fill="#00A4EF" />
-                <path d="M20 11H11V20H20V11Z" fill="#FFB900" />
-              </svg>
-              Login with Microsoft
-            </button>
-
-            {/* Apply Link */}
-            <p className="text-center text-gray-500 text-sm pt-4">
-              New student?{' '}
-              <Link
-                to="/apply"
-                className="text-[#003366] hover:text-[#00264d] font-bold transition"
-              >
-                Apply for admission
-                <ChevronRight className="inline w-3.5 h-3.5 ml-0.5" />
-              </Link>
-            </p>
-          </form>
-
-          {/* Test Credentials */}
-          <div className="mt-8 bg-gray-50 border border-gray-200 rounded-2xl p-5">
-            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Shield className="w-3.5 h-3.5 text-[#003366]" /> Test Credentials
-            </p>
-            <div className="space-y-1.5">
-              {[
-                ['Admin', 'admin@atlas.edu', 'Test123!'],
-                ['Registrar', 'registrar@atlas.edu', 'Test123!'],
-                ['Instructor', 'dr.alem@atlas.edu', 'Test123!'],
-                ['Student', 'abel.tesfaye@atlas.edu.et', 'Test123!'],
-              ].map(([role, emailAddr, pass]) => (
-                <div
-                  key={role}
-                  className="flex items-center justify-between text-xs"
-                >
-                  <span className="text-[#003366] font-bold w-20">{role}</span>
-                  <span className="text-gray-500 flex-1">{emailAddr}</span>
-                  <span className="text-gray-400 font-mono">{pass}</span>
+        <div className="flex items-center justify-center px-6 py-12 sm:px-10">
+          <div
+            className={[
+              'w-full max-w-md',
+              'transition duration-700 ease-out',
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2',
+            ].join(' ')}
+          >
+            <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+              <div className="px-6 py-7 sm:px-8 sm:py-8">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold tracking-tight text-slate-900">
+                      Welcome back
+                    </h2>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Use your institutional email to sign in.
+                    </p>
+                  </div>
+                  <div className="h-10 w-10 rounded-2xl bg-slate-50 ring-1 ring-slate-200 flex items-center justify-center">
+                    <img src={atlasLogo} alt="Atlas" className="h-7 w-7 object-contain" />
+                  </div>
                 </div>
-              ))}
+
+                {formError ? (
+                  <div
+                    role="alert"
+                    className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                  >
+                    {formError}
+                  </div>
+                ) : null}
+
+                <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+                      Email
+                    </label>
+                    <div className="relative mt-2">
+                      <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          setFormError('');
+                        }}
+                        onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                        aria-invalid={emailError ? 'true' : 'false'}
+                        aria-describedby={emailError ? 'email-error' : undefined}
+                        placeholder="name@atlas.edu.et"
+                        className={[
+                          'w-full rounded-xl bg-white pl-10 pr-3.5 py-3 text-sm text-slate-900',
+                          'ring-1 ring-inset outline-none transition',
+                          emailError
+                            ? 'ring-red-300 focus:ring-2 focus:ring-red-500/30'
+                            : 'ring-slate-200 focus:ring-2 focus:ring-teal-600/30',
+                        ].join(' ')}
+                      />
+                    </div>
+                    <FieldError id="email-error">{emailError}</FieldError>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                        Password
+                      </label>
+                      <Link
+                        to="/forgot-password"
+                        className="text-sm font-medium text-teal-700 hover:text-teal-800"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <div className="relative mt-2">
+                      <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          setFormError('');
+                        }}
+                        onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+                        aria-invalid={passwordError ? 'true' : 'false'}
+                        aria-describedby={passwordError ? 'password-error' : undefined}
+                        placeholder="Enter your password"
+                        className={[
+                          'w-full rounded-xl bg-white pl-10 pr-11 py-3 text-sm text-slate-900',
+                          'ring-1 ring-inset outline-none transition',
+                          passwordError
+                            ? 'ring-red-300 focus:ring-2 focus:ring-red-500/30'
+                            : 'ring-slate-200 focus:ring-2 focus:ring-teal-600/30',
+                        ].join(' ')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    <FieldError id="password-error">{passwordError}</FieldError>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-3 select-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-600/30"
+                      />
+                      <span className="text-sm text-slate-600">Remember me</span>
+                    </label>
+                    <span className="text-xs text-slate-500">Shared device? Turn this off.</span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={!canSubmit}
+                    className={[
+                      'mt-1 w-full rounded-xl px-4 py-3.5 text-sm font-semibold text-white',
+                      'bg-teal-600 hover:bg-teal-700 shadow-sm shadow-teal-600/20',
+                      'transition disabled:cursor-not-allowed disabled:opacity-60',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600/40',
+                    ].join(' ')}
+                  >
+                    <span className="inline-flex items-center justify-center gap-2">
+                      {loading ? (
+                        <>
+                          <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                          Signing in…
+                        </>
+                      ) : (
+                        'Sign in'
+                      )}
+                    </span>
+                  </button>
+
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    By signing in, you agree to keep your credentials private and follow campus IT policies.
+                  </p>
+                </form>
+              </div>
+
+              <div className="border-t border-slate-200 px-6 py-5 sm:px-8">
+                <p className="text-sm text-slate-600">
+                  New student?{' '}
+                  <Link to="/apply" className="font-semibold text-teal-700 hover:text-teal-800">
+                    Apply for admission
+                  </Link>
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

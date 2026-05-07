@@ -1,5 +1,5 @@
 const prisma = require('../services/prisma');
-const { getNotifications, markAsRead } = require('../services/notification.service');
+const { getNotifications, markAsRead, sendNotification } = require('../services/notification.service');
 const asyncHandler = require('../utils/asyncHandler');
 
 /**
@@ -29,7 +29,37 @@ const markRead = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc    Send a notification (direct message) to a user
+ * @route   POST /api/users/notifications
+ * @access  Private (Instructor, Admin, Registrar)
+ */
+const sendUserNotification = asyncHandler(async (req, res) => {
+  const { userId, title, message, type } = req.body || {};
+
+  if (!userId || !title || !message) {
+    return res.status(400).json({ success: false, message: 'userId, title, and message are required' });
+  }
+
+  if (req.user.role === 'INSTRUCTOR') {
+    const allowed = await prisma.sectionEnrollment.findFirst({
+      where: {
+        section: { instructor: { userId: req.user.id } },
+        student: { userId },
+      },
+      select: { id: true },
+    });
+    if (!allowed) {
+      return res.status(403).json({ success: false, message: 'You can only message students in your sections' });
+    }
+  }
+
+  const notif = await sendNotification(userId, title, message, type || 'INFO');
+  return res.status(201).json({ success: true, data: notif });
+});
+
 module.exports = {
   getMyNotifications,
   markRead,
+  sendUserNotification,
 };

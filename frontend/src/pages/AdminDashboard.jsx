@@ -3,9 +3,9 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
   LayoutDashboard, Users, Briefcase, BookOpen, Building2, GraduationCap, Calendar,
-  AlertCircle, LogOut, ChevronLeft, ChevronRight, Search, Plus, Menu, X,
+  LogOut, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Search, Plus, Menu, X,
   Pencil, Trash2, MoreVertical, Download, FileText, BarChart2,
-  Activity, Heart, Stethoscope, ClipboardList, Bell, ShieldCheck, Moon, Sun,
+  Heart, Stethoscope, Bell, Moon, Sun, CreditCard, Clock,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -97,18 +97,6 @@ function filteredItems(list, keys, term) {
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 /**
- * Pulse indicator shown next to the active semester card.
- */
-function PulseIndicator() {
-  return (
-    <span className="relative flex h-3 w-3 ml-2">
-      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
-      <span className="relative inline-flex rounded-full h-3 w-3 bg-teal-500" />
-    </span>
-  );
-}
-
-/**
  * Small role pill shown in the header.
  */
 function RolePill({ role }) {
@@ -154,6 +142,7 @@ export default function AdminDashboard() {
   const [departments, setDepartments] = useState([]);
   const [programs, setPrograms]     = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [payments, setPayments]     = useState([]);
   const [deletedDepts, setDeletedDepts] = useState([]);
   const [deletedProgs, setDeletedProgs] = useState([]);
   const [deptView, setDeptView]     = useState('active');
@@ -171,6 +160,12 @@ export default function AdminDashboard() {
   const [assignOpen, setAssignOpen]   = useState(false);
   const [assignProgramId, setAssignProgramId] = useState('');
 
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
+  const [paymentFromDate, setPaymentFromDate] = useState('');
+  const [paymentToDate, setPaymentToDate] = useState('');
+  const [paymentSearchTerm, setPaymentSearchTerm] = useState('');
+  const [paymentSort, setPaymentSort] = useState({ key: 'createdAt', dir: 'desc' });
+
   const tableScrollRef = useRef(null);
 
   // ── Role-based tab visibility ──────────────────────────────────────────────
@@ -186,7 +181,7 @@ export default function AdminDashboard() {
   }, [visibleTabs, activeTab]);
 
   // ── Reset page on filter/tab change ──
-  useEffect(() => { setPage(1); }, [activeTab, searchTerm, programTypeFilter, deptView, progView]);
+  useEffect(() => { setPage(1); }, [activeTab, searchTerm, programTypeFilter, deptView, progView, paymentStatusFilter, paymentFromDate, paymentToDate, paymentSearchTerm, paymentSort]);
 
   // ── Auto-scroll table top on page change ──
   useEffect(() => {
@@ -215,6 +210,13 @@ export default function AdminDashboard() {
       const deptList       = asArray(d?.data?.data);
       const progList       = asArray(p?.data?.data);
       const notifList      = asArray(n?.data?.data);
+      let paymentList = [];
+      try {
+        const pay = await api.get('/payments');
+        paymentList = asArray(pay?.data?.payments || pay?.data?.data);
+      } catch {
+        paymentList = [];
+      }
 
       setStudents(studentList);
       setInstructors(instructorList);
@@ -223,6 +225,24 @@ export default function AdminDashboard() {
       setDepartments(deptList);
       setPrograms(progList);
       setNotifications(notifList);
+      setPayments(paymentList);
+
+      const paidStatuses = new Set(['APPROVED', 'PAID', 'SUCCESS']);
+      const pendingStatuses = new Set(['PENDING', 'SUBMITTED', 'PROCESSING']);
+      const paymentSummary = paymentList.reduce(
+        (acc, row) => {
+          const status = String(row?.status || '').toUpperCase();
+          const amount = Number(row?.amount) || 0;
+          if (paidStatuses.has(status)) {
+            acc.totalCollected += amount;
+            acc.totalPaidCount += 1;
+          } else if (pendingStatuses.has(status)) {
+            acc.totalPendingCount += 1;
+          }
+          return acc;
+        },
+        { totalCollected: 0, totalPaidCount: 0, totalPendingCount: 0 }
+      );
 
       setStats({
         totalStudents:      studentList.length,
@@ -233,6 +253,8 @@ export default function AdminDashboard() {
         activeSemester:     semesterList.find((x) => x.isActive)?.name || 'None',
         totalDepartments:   deptList.length,
         unreadNotifications: notifList.filter((x) => !x.isRead).length,
+        totalPaymentsCollected: paymentSummary.totalCollected,
+        pendingPayments: paymentSummary.totalPendingCount,
       });
     } catch (e) {
       console.error(e);
@@ -477,6 +499,85 @@ export default function AdminDashboard() {
   if (programTypeFilter) programsFiltered = programsFiltered.filter((p) => p.type === programTypeFilter);
   const semestersFiltered   = filteredItems(semesters,   ['name'], searchTerm);
 
+  const paymentRows = useMemo(() => {
+    return (payments || []).map((p) => {
+      const studentName = p?.student?.user?.name ?? p?.studentName ?? null;
+      const studentId = p?.student?.studentId ?? p?.studentId ?? null;
+      return {
+        id: p?.id,
+        studentName,
+        studentId,
+        amount: Number(p?.amount) || 0,
+        status: String(p?.status || '').toUpperCase(),
+        createdAt: p?.createdAt,
+      };
+    });
+  }, [payments]);
+
+  const paymentsFilteredSorted = useMemo(() => {
+    const paidStatuses = new Set(['APPROVED', 'PAID', 'SUCCESS']);
+    const pendingStatuses = new Set(['PENDING', 'SUBMITTED', 'PROCESSING']);
+
+    const q = paymentSearchTerm.trim().toLowerCase();
+    const from = paymentFromDate ? new Date(`${paymentFromDate}T00:00:00`) : null;
+    const to = paymentToDate ? new Date(`${paymentToDate}T23:59:59.999`) : null;
+
+    const filtered = paymentRows.filter((row) => {
+      if (paymentStatusFilter === 'PAID' && !paidStatuses.has(row.status)) return false;
+      if (paymentStatusFilter === 'PENDING' && !pendingStatuses.has(row.status)) return false;
+
+      if (q) {
+        const hay = `${row.studentName ?? ''} ${row.studentId ?? ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+
+      if (from || to) {
+        const t = row.createdAt ? new Date(row.createdAt).getTime() : NaN;
+        if (!Number.isFinite(t)) return false;
+        if (from && t < from.getTime()) return false;
+        if (to && t > to.getTime()) return false;
+      }
+
+      return true;
+    });
+
+    const dirMul = paymentSort.dir === 'asc' ? 1 : -1;
+    const sorted = [...filtered].sort((a, b) => {
+      const key = paymentSort.key;
+      if (key === 'amount') return dirMul * ((a.amount || 0) - (b.amount || 0));
+      if (key === 'createdAt') {
+        const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dirMul * (ta - tb);
+      }
+      const va = String(a[key] ?? '').toLowerCase();
+      const vb = String(b[key] ?? '').toLowerCase();
+      return dirMul * va.localeCompare(vb);
+    });
+
+    return sorted;
+  }, [paymentRows, paymentSearchTerm, paymentStatusFilter, paymentFromDate, paymentToDate, paymentSort]);
+
+  const paymentsPaged = useMemo(
+    () => paginatedItems(paymentsFilteredSorted, page, pageSize),
+    [paymentsFilteredSorted, page, pageSize]
+  );
+
+  const togglePaymentSort = (key) => {
+    setPaymentSort((prev) => {
+      if (prev.key === key) return { key, dir: prev.dir === 'asc' ? 'desc' : 'asc' };
+      return { key, dir: key === 'createdAt' ? 'desc' : 'asc' };
+    });
+  };
+
+  const formatMoney = useCallback((amount) => {
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'ETB' }).format(Number(amount) || 0);
+    } catch {
+      return `${Number(amount) || 0}`;
+    }
+  }, []);
+
   const currentList = useMemo(() => {
     switch (activeTab) {
       case 'students':     return studentsFiltered;
@@ -561,7 +662,7 @@ export default function AdminDashboard() {
   }
 
   // ── Sidebar nav button ──
-  const NavBtn = ({ tab, Icon, label, badge }) => {
+  const NavBtn = ({ tab, icon: IconComponent, label, badge }) => {
     const active = activeTab === tab;
     return (
       <button
@@ -577,7 +678,7 @@ export default function AdminDashboard() {
               : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}
         `}
       >
-        <Icon className={`w-5 h-5 shrink-0 ${active ? 'text-teal-500' : ''}`} />
+        <IconComponent className={`w-5 h-5 shrink-0 ${active ? 'text-teal-500' : ''}`} />
         {!sidebarCollapsed && <span className="truncate">{label}</span>}
         {!sidebarCollapsed && badge > 0 && (
           <span className="ml-auto bg-teal-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
@@ -627,7 +728,7 @@ export default function AdminDashboard() {
             <NavBtn
               key={tab}
               tab={tab}
-              Icon={Icon}
+              icon={Icon}
               label={TAB_LABELS[tab]}
               badge={tab === 'notifications' ? stats.unreadNotifications : 0}
             />
@@ -800,50 +901,200 @@ export default function AdminDashboard() {
             <section>
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                 <div>
-                  <h2 className="text-2xl font-black text-white tracking-tight">System Overview</h2>
-                  <p className="text-slate-400 text-sm mt-1">Atlas Medical College · Academic Administration</p>
+                  <h2 className="text-2xl font-black text-white tracking-tight">Admin Dashboard</h2>
+                  <p className="text-slate-400 text-sm mt-1">Atlas Health College Portal · Payments & student activity</p>
                 </div>
-                {can('create') && (
-                  <div className="flex gap-2 flex-wrap">
-                    <Button variant="secondary" onClick={() => openModal('department')}>
-                      <Plus className="w-4 h-4" /> New Department
-                    </Button>
-                    <Button variant="primary" onClick={() => openModal('course')}>
-                      <Plus className="w-4 h-4" /> New Course
-                    </Button>
-                  </div>
-                )}
               </div>
 
               {/* Stat cards */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-                <StatCard label="Total Students"  value={stats.totalStudents}    icon={Users}          color="text-blue-400"   bg="bg-blue-500/10"   loading={loading} />
-                <StatCard label="Faculty"          value={stats.totalInstructors} icon={Briefcase}      color="text-indigo-400" bg="bg-indigo-500/10" loading={loading} />
-                <StatCard label="Courses"          value={stats.totalCourses}     icon={BookOpen}       color="text-amber-400"  bg="bg-amber-500/10"  loading={loading} />
-                <StatCard label="Departments"      value={stats.totalDepartments} icon={Building2}      color="text-emerald-400" bg="bg-emerald-500/10" loading={loading} />
-                <StatCard label="Programs"         value={stats.totalPrograms}    icon={GraduationCap}  color="text-violet-400" bg="bg-violet-500/10" loading={loading} />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+                <StatCard
+                  label="Total Students"
+                  value={stats.totalStudents}
+                  icon={Users}
+                  color="text-blue-400"
+                  bg="bg-blue-500/10"
+                  loading={loading}
+                />
+                <StatCard
+                  label="Total Payments Collected"
+                  value={loading ? '' : formatMoney(stats.totalPaymentsCollected || 0)}
+                  icon={CreditCard}
+                  color="text-emerald-400"
+                  bg="bg-emerald-500/10"
+                  loading={loading}
+                />
+                <StatCard
+                  label="Pending Payments"
+                  value={stats.pendingPayments ?? 0}
+                  icon={Clock}
+                  color="text-amber-400"
+                  bg="bg-amber-500/10"
+                  loading={loading}
+                />
               </div>
 
-              {/* Active semester + quick metrics */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 bg-slate-900 border border-white/5 rounded-2xl p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Activity className="w-5 h-5 text-teal-400" />
-                    <h3 className="text-white font-bold">Active Semester</h3>
-                    {stats.activeSemester !== 'None' && <PulseIndicator />}
+              <div className="bg-slate-900 border border-white/5 rounded-2xl overflow-hidden">
+                <div className="p-4 lg:p-5 border-b border-white/5">
+                  <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-3">
+                    <div>
+                      <h3 className="text-white font-black tracking-tight text-lg">Payments</h3>
+                      <p className="text-slate-500 text-xs mt-1">Search, filter, sort, and review payment activity.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 w-full lg:w-auto">
+                      <div className="sm:col-span-2">
+                        <div className="flex items-center border px-3 py-2 rounded-xl gap-2 focus-within:ring-2 focus-within:ring-teal-500/50 transition bg-slate-800 border-white/10">
+                          <Search className="w-4 h-4 shrink-0 text-slate-500" />
+                          <input
+                            type="text"
+                            placeholder="Search students (name or ID)…"
+                            value={paymentSearchTerm}
+                            onChange={(e) => setPaymentSearchTerm(e.target.value)}
+                            className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none text-white placeholder-slate-500"
+                          />
+                          {paymentSearchTerm && (
+                            <button
+                              type="button"
+                              onClick={() => setPaymentSearchTerm('')}
+                              className="transition text-slate-500 hover:text-white"
+                              aria-label="Clear payment search"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <select
+                        value={paymentStatusFilter}
+                        onChange={(e) => setPaymentStatusFilter(e.target.value)}
+                        className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                        aria-label="Filter payments by status"
+                      >
+                        <option value="">All statuses</option>
+                        <option value="PAID">Paid</option>
+                        <option value="PENDING">Pending</option>
+                      </select>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="date"
+                          value={paymentFromDate}
+                          onChange={(e) => setPaymentFromDate(e.target.value)}
+                          className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                          aria-label="From date"
+                        />
+                        <input
+                          type="date"
+                          value={paymentToDate}
+                          onChange={(e) => setPaymentToDate(e.target.value)}
+                          className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                          aria-label="To date"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-3xl font-black text-white">{stats.activeSemester}</p>
-                  <p className="text-slate-500 text-sm mt-1">
-                    {stats.activeStudents ?? 0} active students enrolled
-                  </p>
                 </div>
-                <div className="bg-gradient-to-br from-teal-600/20 to-teal-500/5 border border-teal-500/20 rounded-2xl p-6 flex flex-col justify-between">
-                  <ShieldCheck className="w-6 h-6 text-teal-400 mb-3" />
-                  <div>
-                    <p className="text-teal-300 font-bold text-sm">System Health</p>
-                    <p className="text-white text-2xl font-black mt-1">Operational</p>
-                    <p className="text-slate-500 text-xs mt-1">All services running normally</p>
-                  </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-slate-800/60 border-b border-white/5">
+                        {[
+                          { key: 'studentName', label: 'Student Name' },
+                          { key: 'studentId', label: 'ID' },
+                          { key: 'amount', label: 'Amount', align: 'text-right' },
+                          { key: 'status', label: 'Status', align: 'text-center' },
+                          { key: 'createdAt', label: 'Date', align: 'text-right' },
+                        ].map((col) => (
+                          <th
+                            key={col.key}
+                            className={`px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider ${
+                              col.align || ''
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => togglePaymentSort(col.key)}
+                              className={`inline-flex items-center gap-1.5 hover:text-slate-300 transition ${
+                                col.align === 'text-right'
+                                  ? 'justify-end w-full'
+                                  : col.align === 'text-center'
+                                    ? 'justify-center w-full'
+                                    : ''
+                              }`}
+                            >
+                              {col.label}
+                              {paymentSort.key === col.key ? (
+                                paymentSort.dir === 'asc' ? (
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                ) : (
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                )
+                              ) : (
+                                <span className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    {loading ? (
+                      <TableSkeleton rows={6} cols={5} />
+                    ) : (
+                      <tbody className="divide-y divide-white/[0.03]">
+                        {paymentsPaged.map((row) => {
+                          const paidStatuses = new Set(['APPROVED', 'PAID', 'SUCCESS']);
+                          const pendingStatuses = new Set(['PENDING', 'SUBMITTED', 'PROCESSING']);
+                          const displayStatus = paidStatuses.has(row.status)
+                            ? 'PAID'
+                            : pendingStatuses.has(row.status)
+                              ? 'PENDING'
+                              : row.status || 'UNKNOWN';
+                          const rowTone = displayStatus === 'PENDING' ? 'bg-amber-500/5' : '';
+
+                          return (
+                            <tr key={row.id} className={`hover:bg-white/[0.02] transition ${rowTone}`}>
+                              <td className="px-4 py-3">
+                                <p className="text-sm font-semibold text-white">{row.studentName || '—'}</p>
+                              </td>
+                              <td className="px-4 py-3">
+                                <p className="text-[11px] text-slate-500 font-mono">{row.studentId || '—'}</p>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <p className="text-sm font-semibold text-white">{formatMoney(row.amount)}</p>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <Badge status={displayStatus} />
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <p className="text-xs text-slate-500 whitespace-nowrap">
+                                  {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '—'}
+                                </p>
+                              </td>
+                            </tr>
+                          );
+                        })}
+
+                        {paymentsPaged.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="p-0">
+                              <EmptyState icon={CreditCard} message="No payments match your filters." />
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    )}
+                  </table>
+                </div>
+
+                <div className="border-t border-white/5">
+                  <Pagination
+                    total={paymentsFilteredSorted.length}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={setPage}
+                    onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+                    variant={dark ? 'dark' : 'light'}
+                  />
                 </div>
               </div>
             </section>
@@ -1162,6 +1413,7 @@ export default function AdminDashboard() {
                     pageSize={pageSize}
                     onPageChange={setPage}
                     onPageSizeChange={(n) => { setPageSize(n); setPage(1); }}
+                    variant={dark ? 'dark' : 'light'}
                   />
                 </div>
               </div>
@@ -1236,6 +1488,7 @@ export default function AdminDashboard() {
                     pageSize={pageSize}
                     onPageChange={(p) => fetchAudit((p - 1) * pageSize)}
                     onPageSizeChange={(n) => { setPageSize(n); fetchAudit(0); }}
+                    variant={dark ? 'dark' : 'light'}
                   />
                 </div>
               </div>

@@ -277,13 +277,19 @@ model PasswordResetToken {
 model Payment {
   id                 String              @id @default(uuid())
   studentId          String
-  invoiceId          String
+  invoiceId          String?
   amount             Float
-  referenceNumber    String              @unique
+  reference          String              @unique
+  referenceNumber    String?             @unique
+  provider           String?             @default("AWASH")
+  phoneNumber        String?
+  externalId         String?             @unique
   bankTransactionId  String?             @unique
   paymentMethod      PaymentMethod       @default(MOBILE_MONEY)
   status             PaymentStatus       @default(PENDING)
   paymentDate        DateTime?
+  paidAt             DateTime?
+  expiresAt          DateTime?
   verifiedAt         DateTime?
   verifiedBy         String?
   verificationMethod VerificationMethod?
@@ -292,7 +298,7 @@ model Payment {
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   proofUrl           String?
-  invoice            Invoice             @relation(fields: [invoiceId], references: [id])
+  invoice            Invoice?            @relation(fields: [invoiceId], references: [id])
   student            Student             @relation(fields: [studentId], references: [id])
 }
 
@@ -393,6 +399,7 @@ model Student {
   enrollment           Enrollment[]
   invoice              Invoice[]
   payment              Payment[]
+  studentPayments      StudentPayment[]
   sectionEnrollments   SectionEnrollment[]
   semesterRegistration SemesterRegistration[]
   admissionApplication AdmissionApplication?  @relation(fields: [admissionId], references: [id])
@@ -506,6 +513,18 @@ model SectionEnrollment {
   @@unique([studentId, sectionId])
 }
 
+model StudentPayment {
+  id        String        @id @default(uuid())
+  studentId String
+  reference String        @unique
+  amount    Float
+  status    PaymentStatus @default(PENDING)
+  isPaid    Boolean       @default(false)
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
+  student   Student       @relation(fields: [studentId], references: [id])
+}
+
 enum ApplicationStatus {
   SUBMITTED
   UNDER_REVIEW
@@ -536,8 +555,11 @@ enum PaymentMethod {
 
 enum PaymentStatus {
   PENDING
+  PROCESSING
+  SUCCESS
   SUCCESSFUL
   FAILED
+  EXPIRED
   REFUNDED
   PAID
   OVERDUE

@@ -10,6 +10,10 @@ const STATUS_COLORS = {
   INSTRUCTOR: 'bg-indigo-100 text-indigo-800',
   ADMIN: 'bg-rose-100 text-rose-800',
   STAFF: 'bg-purple-100 text-purple-800',
+  PENDING: 'bg-amber-100 text-amber-800',
+  APPROVED: 'bg-green-100 text-green-800',
+  PAID: 'bg-green-100 text-green-800',
+  REJECTED: 'bg-red-100 text-red-800',
 };
 
 export default function Badge({ status, variant, className = '' }) {

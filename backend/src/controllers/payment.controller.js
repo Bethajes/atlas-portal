@@ -1,6 +1,248 @@
 const prisma = require('../services/prisma');
 const crypto = require('crypto');
 const { applyOverdueIfNeeded, generateReferenceNumber, applyDiscount } = require('../utils/payment.utils');
+const chapaService = require('../services/chapa.service');
+const paymentService = require('../services/paymentService');
+
+// ─── UNIFIED PAYMENT INITIALIZATION ───────────────────────────
+const initiateUnifiedPayment = async (req, res) => {
+  try {
+    const { amount, phoneNumber, provider } = req.body;
+    const userId = req.user.id;
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Valid amount is required' });
+    }
+    if (!phoneNumber) {
+      return res.status(400).json({ success: false, message: 'Phone number is required' });
+    }
+    if (!provider) {
+      return res.status(400).json({ success: false, message: 'Payment provider is required' });
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { userId },
+    });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    const payment = await paymentService.initiate({
+      studentId: student.id,
+      amount,
+      phoneNumber,
+      provider,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Payment initiated successfully',
+      data: {
+        reference: payment.reference,
+        status: payment.status,
+        amount: payment.amount,
+        expiresAt: payment.expiresAt,
+      },
+    });
+  } catch (error) {
+    console.error('Unified Payment Initiation Error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── UNIFIED PAYMENT STATUS ───────────────────────────────────
+const getUnifiedPaymentStatus = async (req, res) => {
+  try {
+    const { reference } = req.params;
+
+    if (!reference) {
+      return res.status(400).json({ success: false, message: 'Reference is required' });
+    }
+
+    const payment = await paymentService.getStatus(reference);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        reference: payment.reference,
+        status: payment.status,
+        amount: payment.amount,
+        paidAt: payment.paidAt,
+        provider: payment.provider,
+      },
+    });
+  } catch (error) {
+    console.error('Unified Payment Status Error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── AWASH WEBHOOK HANDLER ────────────────────────────────────
+const awashWebhook = async (req, res) => {
+  try {
+    const signature = req.headers['x-arifpay-signature'];
+    const payload = req.body;
+
+    await paymentService.handleWebhook('AWASH', payload, signature);
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Awash Webhook Error:', error.message);
+    // Always return 200 to provider but log error
+    return res.status(200).json({ success: false, message: error.message });
+  }
+};
+
+// ─── CHAPA PAYMENT INITIALIZATION ─────────────────────────────
+const initializeChapaPayment = async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const userId = req.user.id;
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid amount' });
+    }
+
+    const student = await prisma.student.findUnique({
+      where: { userId },
+      include: { user: true }
+    });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'Student profile not found' });
+    }
+
+    const tx_ref = `ATLAS-${student.studentId}-${Date.now()}`;
+
+    // Save pending payment in DB
+    await prisma.studentPayment.create({
+      data: {
+        studentId: student.id,
+        reference: tx_ref,
+        amount: parseFloat(amount),
+        status: 'PENDING',
+        isPaid: false,
+      },
+    });
+
+    // Initialize Chapa Payment
+    const chapaData = {
+      amount: amount.toString(),
+      currency: 'ETB',
+      email: student.user.institutionalEmail,
+      first_name: student.firstName || student.user.name.split(' ')[0],
+      last_name: student.user.name.split(' ')[1] || '',
+      tx_ref,
+      callback_url: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/pay/webhook`,
+      return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-status?tx_ref=${tx_ref}`,
+      customization: {
+        title: 'Tuition Fee Payment',
+        description: 'Payment for Atlas Health College Portal',
+      },
+    };
+
+    const response = await chapaService.initializePayment(chapaData);
+
+    if (response.status === 'success') {
+      return res.status(200).json({
+        success: true,
+        checkout_url: response.data.checkout_url,
+        tx_ref,
+      });
+    } else {
+      throw new Error(response.message || 'Chapa initialization failed');
+    }
+  } catch (error) {
+    console.error('Initialize Chapa Payment Error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── CHAPA WEBHOOK HANDLER ────────────────────────────────────
+const chapaWebhook = async (req, res) => {
+  try {
+    const hash = crypto
+      .createHmac('sha256', process.env.CHAPA_WEBHOOK_SECRET || '')
+      .update(JSON.stringify(req.body))
+      .digest('hex');
+
+    if (hash !== req.headers['x-chapa-signature']) {
+      console.error('Invalid webhook signature');
+      return res.status(401).json({ success: false, message: 'Invalid signature' });
+    }
+
+    const { tx_ref, status } = req.body;
+
+    if (!tx_ref) {
+      return res.status(400).json({ success: false, message: 'No reference provided' });
+    }
+
+    // Verify transaction with Chapa API (Production safety)
+    const verification = await chapaService.verifyTransaction(tx_ref);
+
+    if (verification.status === 'success' && verification.data.status === 'success') {
+      const payment = await prisma.studentPayment.findUnique({
+        where: { reference: tx_ref },
+      });
+
+      if (payment && !payment.isPaid) {
+        await prisma.studentPayment.update({
+          where: { id: payment.id },
+          data: {
+            status: 'SUCCESS',
+            isPaid: true,
+            paidAt: new Date(),
+          },
+        });
+        console.log(`Payment successful for reference: ${tx_ref}`);
+      }
+    } else {
+      await prisma.studentPayment.update({
+        where: { reference: tx_ref },
+        data: { status: 'FAILED' },
+      });
+      console.log(`Payment failed for reference: ${tx_ref}`);
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Chapa Webhook Error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── GET PAYMENT STATUS ───────────────────────────────────────
+const getPaymentStatus = async (req, res) => {
+  try {
+    const { tx_ref } = req.params;
+
+    const payment = await prisma.studentPayment.findUnique({
+      where: { reference: tx_ref },
+      select: {
+        status: true,
+        isPaid: true,
+        amount: true,
+        paidAt: true,
+      }
+    });
+
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      status: payment.status,
+      isPaid: payment.isPaid,
+      amount: payment.amount,
+      paidAt: payment.paidAt,
+    });
+  } catch (error) {
+    console.error('Get Payment Status Error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // ─── GENERATE REFERENCE NUMBER ───────────────────────────────
 const generateRef = () => {
@@ -507,6 +749,12 @@ const applyDiscountEndpoint = async (req, res) => {
 };
 
 module.exports = {
+  initiateUnifiedPayment,
+  getUnifiedPaymentStatus,
+  awashWebhook,
+  initializeChapaPayment,
+  chapaWebhook,
+  getPaymentStatus,
   initiatePayment,
   verifyPayment,
   paymentWebhook,

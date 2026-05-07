@@ -110,7 +110,14 @@ const getSection = async (req, res) => {
           include: {
             student: {
               include: {
-                user: { select: { name: true, institutionalEmail: true } },
+                user: { select: { id: true, name: true, institutionalEmail: true } },
+                department: { select: { id: true, name: true } },
+                program: { select: { id: true, name: true } },
+                studentPayments: {
+                  orderBy: { createdAt: 'desc' },
+                  take: 1,
+                  select: { status: true, isPaid: true, amount: true, createdAt: true },
+                },
               },
             },
           },
@@ -278,6 +285,70 @@ const assignGrade = async (req, res) => {
   }
 };
 
+// ─── GET MY STUDENTS (instructor) ────────────────────────────
+const getMyStudents = async (req, res) => {
+  try {
+    const enrollments = await prisma.sectionEnrollment.findMany({
+      where: {
+        section: {
+          instructor: { userId: req.user.id },
+        },
+      },
+      include: {
+        section: {
+          include: {
+            course: { select: { id: true, code: true, title: true, credits: true } },
+          },
+        },
+        student: {
+          include: {
+            user: { select: { id: true, name: true, institutionalEmail: true } },
+            department: { select: { id: true, name: true } },
+            program: { select: { id: true, name: true } },
+            studentPayments: {
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+              select: { status: true, isPaid: true, amount: true, createdAt: true },
+            },
+          },
+        },
+      },
+      orderBy: [{ section: { course: { code: 'asc' } } }, { section: { name: 'asc' } }, { student: { studentId: 'asc' } }],
+    });
+
+    const data = enrollments.map((e) => ({
+      enrollmentId: e.id,
+      sectionId: e.sectionId,
+      sectionName: e.section?.name,
+      courseId: e.section?.course?.id,
+      courseCode: e.section?.course?.code,
+      courseTitle: e.section?.course?.title,
+      courseCredits: e.section?.course?.credits,
+      status: e.status,
+      grade: e.grade,
+      letterGrade: e.letterGrade,
+      enrolledAt: e.enrolledAt,
+      student: {
+        id: e.student?.id,
+        userId: e.student?.userId,
+        name: e.student?.user?.name,
+        institutionalEmail: e.student?.user?.institutionalEmail,
+        studentId: e.student?.studentId,
+        cumulativeGPA: e.student?.cumulativeGPA,
+        photoUrl: e.student?.photoUrl,
+        department: e.student?.department,
+        program: e.student?.program,
+        latestPayment: e.student?.studentPayments?.[0] || null,
+      },
+    }));
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error('Get my students error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ─── GET MY SECTIONS (instructor) ────────────────────────────
 const getMySections = async (req, res) => {
   try {
@@ -334,6 +405,7 @@ module.exports = {
   deleteSection,
   enrollInSection,
   assignGrade,
+  getMyStudents,
   getMySections,
   getMyEnrollments,
 };

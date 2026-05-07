@@ -16,9 +16,13 @@ import RegistrarStudents from './pages/RegistrarStudents';
 import AcademicSetup from './pages/AcademicSetup';
 import Apply from './pages/Apply';
 import ChangePassword from './pages/ChangePassword';
+import ForgotPassword from './pages/ForgotPassword';
 import StudentRegistration from './pages/StudentRegistration';
+import StudentPortalRegistration from './pages/StudentPortalRegistration';
 import DepartmentHeadDashboard from './pages/DepartmentHeadDashboard';
 import PaymentPage from './pages/PaymentPage';
+import ChapaPaymentPage from './pages/ChapaPaymentPage';
+import ArifPaymentPage from './pages/ArifPaymentPage';
 import StudentProfile from './pages/StudentProfile';
 import StudentTranscript from './pages/StudentTranscript';
 
@@ -55,9 +59,26 @@ export default function App() {
               <PaymentPage />
             </ProtectedRoute>
           } />
+          <Route path="/pay" element={
+            <ProtectedRoute allowedRoles={['STUDENT']}>
+              <ChapaPaymentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/pay/arif" element={
+            <ProtectedRoute allowedRoles={['STUDENT']}>
+              <ArifPaymentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment-status" element={
+            <ProtectedRoute allowedRoles={['STUDENT']}>
+              <ChapaPaymentPage />
+            </ProtectedRoute>
+          } />
           {/* Public */}
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/student-registration" element={<StudentPortalRegistration />} />
           <Route path="/apply" element={<Apply />} />
           <Route path="/change-password" element={
             <ProtectedRoute>

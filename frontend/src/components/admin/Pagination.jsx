@@ -21,6 +21,7 @@ export default function Pagination({
   pageSize,
   onPageChange,
   onPageSizeChange,
+  variant = 'light',
 }) {
   const totalPages = Math.ceil(total / pageSize);
   const startRecord = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -45,10 +46,16 @@ export default function Pagination({
     onPageChange(1);
   };
 
+  const isDark = variant === 'dark';
+
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 bg-white border-t border-gray-200">
+    <div
+      className={`flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-3 border-t ${
+        isDark ? 'bg-slate-900 border-white/5 text-slate-300' : 'bg-white border-gray-200 text-gray-700'
+      }`}
+    >
       {/* Left: Showing X-Y of Z */}
-      <div className="text-sm text-gray-700">
+      <div className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
         Showing <span className="font-medium">{startRecord}</span>–
         <span className="font-medium">{endRecord}</span> of{' '}
         <span className="font-medium">{total}</span>
@@ -59,13 +66,17 @@ export default function Pagination({
         <button
           onClick={handlePrevious}
           disabled={page <= 1}
-          className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 ${
+            isDark
+              ? 'border border-white/10 text-slate-200 bg-slate-800 hover:bg-slate-700 focus:ring-teal-500/50'
+              : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500'
+          }`}
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
           Previous
         </button>
 
-        <span className="text-sm text-gray-700">
+        <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
           Page <span className="font-medium">{page}</span> of{' '}
           <span className="font-medium">{totalPages}</span>
         </span>
@@ -73,7 +84,11 @@ export default function Pagination({
         <button
           onClick={handleNext}
           disabled={page >= totalPages}
-          className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition focus:outline-none focus:ring-2 ${
+            isDark
+              ? 'border border-white/10 text-slate-200 bg-slate-800 hover:bg-slate-700 focus:ring-teal-500/50'
+              : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500'
+          }`}
         >
           Next
           <ChevronRight className="w-4 h-4 ml-1" />
@@ -82,14 +97,18 @@ export default function Pagination({
 
       {/* Right: Page size selector */}
       <div className="flex items-center gap-2">
-        <label htmlFor="pageSize" className="text-sm text-gray-700">
+        <label htmlFor="pageSize" className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-700'}`}>
           Per page:
         </label>
         <select
           id="pageSize"
           value={pageSize}
           onChange={handlePageSizeChange}
-          className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition focus:outline-none focus:ring-2 ${
+            isDark
+              ? 'border border-white/10 text-slate-200 bg-slate-800 hover:bg-slate-700 focus:ring-teal-500/50'
+              : 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500'
+          }`}
         >
           <option value={10}>10</option>
           <option value={20}>20</option>

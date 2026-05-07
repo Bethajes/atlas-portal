@@ -1,16 +1,54 @@
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import {
+  Activity,
+  AlertTriangle,
+  Award,
+  BarChart2,
+  BarChart3,
+  Bell,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Download,
+  Eye,
+  FileText,
+  GraduationCap,
+  Layers,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Plus,
+  Save,
+  Search,
+  Settings,
+  TrendingUp,
+  Users,
+  X,
+} from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
-import toast from 'react-hot-toast';
+import AttendanceTable from '../components/instructor/AttendanceTable';
+import GradebookTable from '../components/instructor/GradebookTable';
+import InstructorAnalytics from '../components/instructor/InstructorAnalytics';
+import MessagingCenter from '../components/instructor/MessagingCenter';
+import StudentSearch from '../components/instructor/StudentSearch';
+import StudentProfileModal from '../components/instructor/StudentProfileModal';
 import {
-  LayoutDashboard, BookOpen, Users, FileText, CheckCircle,
-  Plus, Search, ChevronRight, Clock, LogOut, ChevronLeft,
-  Download, Layers, X, Save, Bell, TrendingUp, Award,
-  BarChart2, Activity, AlertTriangle, Menu, GraduationCap,
-  Pencil, Eye, Settings
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+  createAnnouncement,
+  fetchInstructorAnnouncements,
+  fetchMyStudents,
+  fetchNotifications,
+  markNotificationRead,
+  sendStudentMessage,
+  assignSectionGrade,
+  fetchSection,
+} from '../services/instructor';
 
 // ─── Constants ───────────────────────────────────────────────
 const GRADES = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F', 'I', 'W'];
@@ -68,7 +106,7 @@ export default function InstructorDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab]           = useState('overview');
+  const [activeTab, setActiveTab]           = useState('dashboard');
   const [mobileSidebar, setMobileSidebar]   = useState(false);
   const [sections, setSections]             = useState([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
@@ -89,9 +127,24 @@ export default function InstructorDashboard() {
   const [saving, setSaving]                 = useState(false);
   const [search, setSearch]                 = useState('');
 
+  const [instructorStudents, setInstructorStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState([]);
+  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [studentProfile, setStudentProfile] = useState(null);
+  const [messageTarget, setMessageTarget] = useState(null);
+  const [messageDraft, setMessageDraft] = useState({ title: 'Message from your instructor', message: '', type: 'INFO' });
+
   useEffect(() => {
     fetchCourses();
     fetchSections();
+    fetchStudents();
+    fetchAnnouncements();
+    fetchNotif();
   }, []);
 
   const fetchCourses = async () => {
@@ -104,9 +157,46 @@ export default function InstructorDashboard() {
     catch { setSections([]); } finally { setSectionsLoading(false); }
   };
 
+  const fetchStudents = async () => {
+    setStudentsLoading(true);
+    try {
+      const data = await fetchMyStudents();
+      setInstructorStudents(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setInstructorStudents([]);
+      toast.error(e?.response?.data?.message || 'Failed to load students');
+    } finally {
+      setStudentsLoading(false);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    setAnnouncementsLoading(true);
+    try {
+      const data = await fetchInstructorAnnouncements();
+      setAnnouncements(Array.isArray(data) ? data : []);
+    } catch {
+      setAnnouncements([]);
+    } finally {
+      setAnnouncementsLoading(false);
+    }
+  };
+
+  const fetchNotif = async () => {
+    setNotificationsLoading(true);
+    try {
+      const data = await fetchNotifications();
+      setNotifications(Array.isArray(data) ? data : []);
+    } catch {
+      setNotifications([]);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
   const openSection = useCallback(async (sec) => {
     setSelectedSection(sec); setSectionStudents([]); setPendingGrades({}); setUpdatedRows(new Set()); setSectionLoading(true);
-    try { const r = await api.get(`/sections/${sec.id}`); setSectionStudents(r.data.data?.enrollments || []); }
+    try { const data = await fetchSection(sec.id); setSectionStudents(data?.enrollments || []); }
     catch (e) { toast.error(e.response?.data?.message || 'Failed to load students'); }
     finally { setSectionLoading(false); }
   }, []);
@@ -153,8 +243,50 @@ export default function InstructorDashboard() {
     finally { setSaving(false); }
   };
 
-  const totalStudents = sections.reduce((s, sec) => s + (sec.enrolledCount || 0), 0);
-  const gradedCount   = sections.reduce((s, sec) => s + (sec.enrolledCount || 0), 0); // placeholder
+  const totalStudents = useMemo(() => {
+    const ids = new Set();
+    for (const row of instructorStudents || []) {
+      if (row?.student?.id) ids.add(row.student.id);
+    }
+    return ids.size;
+  }, [instructorStudents]);
+
+  const pendingGradeSubmissions = useMemo(
+    () => (instructorStudents || []).filter((r) => !r?.letterGrade && String(r?.status || '').toUpperCase() === 'ENROLLED').length,
+    [instructorStudents]
+  );
+
+  const attendanceByStudentId = useMemo(() => {
+    const sectionIds = (sections || []).map((s) => s.id).filter(Boolean);
+    const totals = new Map();
+    const presents = new Map();
+
+    for (const sid of sectionIds) {
+      try {
+        const raw = localStorage.getItem(`instructorAttendance:${sid}`);
+        const store = raw ? JSON.parse(raw) : {};
+        for (const day of Object.values(store || {})) {
+          for (const [studentId, present] of Object.entries(day || {})) {
+            totals.set(studentId, (totals.get(studentId) || 0) + 1);
+            presents.set(studentId, (presents.get(studentId) || 0) + (present ? 1 : 0));
+          }
+        }
+      } catch {}
+    }
+
+    const out = {};
+    for (const [studentId, total] of totals.entries()) {
+      const p = presents.get(studentId) || 0;
+      out[studentId] = total ? (p / total) * 100 : null;
+    }
+    return out;
+  }, [sections]);
+
+  const averageAttendance = useMemo(() => {
+    const values = Object.values(attendanceByStudentId).filter((v) => typeof v === 'number' && !Number.isNaN(v));
+    if (!values.length) return null;
+    return values.reduce((a, b) => a + b, 0) / values.length;
+  }, [attendanceByStudentId]);
   const filteredStudents = sectionStudents.filter(e =>
     !search || e.student?.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
     e.student?.studentId?.toLowerCase().includes(search.toLowerCase())
@@ -166,6 +298,7 @@ export default function InstructorDashboard() {
     { id: 'sections',    label: 'My Sections',   Icon: Layers,   badge: sections.length || null },
     { id: 'courses',     label: 'My Courses',    Icon: BookOpen, badge: courses.length || null },
     { id: 'assignments', label: 'Assignments',   Icon: FileText },
+    { id: 'students',    label: 'Students',      Icon: Users,    badge: totalStudents || null },
   ];
 
   const SidebarContent = () => (
@@ -793,6 +926,51 @@ export default function InstructorDashboard() {
             </div>
           )}
 
+          {/* ══════════════════════════════════════════════════
+              STUDENTS TAB
+          ══════════════════════════════════════════════════ */}
+          {activeTab === 'students' && (
+            <div className="space-y-5 animate-in fade-in duration-300">
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">All Students</h1>
+                <p className="text-sm text-gray-500 mt-0.5">Search and manage students across all your sections.</p>
+              </div>
+
+              {studentsLoading ? (
+                <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
+                  <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+                  <p className="text-sm text-gray-500">Loading students...</p>
+                </div>
+              ) : (
+                <StudentSearch
+                  enrollments={instructorStudents}
+                  attendanceByStudentId={attendanceByStudentId}
+                  onViewProfile={(item) => setStudentProfile(item)}
+                  onAddGrade={(item) => {
+                    // Navigate to the first section this student is in
+                    const firstSection = sections.find(s => 
+                      item.sections?.some(sec => sec.sectionId === s.id)
+                    );
+                    if (firstSection) {
+                      setActiveTab('sections');
+                      openSection(firstSection);
+                    } else {
+                      toast.error('No section found for this student');
+                    }
+                  }}
+                  onMessageStudent={(item) => {
+                    setMessageTarget(item.student);
+                    setMessageDraft({ 
+                      title: 'Message from your instructor', 
+                      message: '', 
+                      type: 'INFO' 
+                    });
+                  }}
+                />
+              )}
+            </div>
+          )}
+
         </main>
       </div>
 
@@ -844,6 +1022,15 @@ export default function InstructorDashboard() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* ── Student Profile Modal ── */}
+      {studentProfile && (
+        <StudentProfileModal
+          studentData={studentProfile}
+          attendancePercent={attendanceByStudentId[studentProfile?.student?.id]}
+          onClose={() => setStudentProfile(null)}
+        />
       )}
     </div>
   );

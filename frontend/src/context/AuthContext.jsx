@@ -3,6 +3,12 @@ import api from '../api/axios';
 
 const AuthContext = createContext();
 
+function getPreferredTokenStorage() {
+  const sessionToken = sessionStorage.getItem('accessToken');
+  if (sessionToken) return sessionStorage;
+  return localStorage;
+}
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');
@@ -17,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   // On mount: check if we have a valid token and fetch user
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('accessToken');
+      const token = getPreferredTokenStorage().getItem('accessToken');
       if (!token) {
         setAuthLoading(false);
         return;
@@ -28,6 +34,8 @@ export const AuthProvider = ({ children }) => {
       } catch {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        sessionStorage.removeItem('accessToken');
+        sessionStorage.removeItem('refreshToken');
         setUser(null);
       } finally {
         setAuthLoading(false);
@@ -36,7 +44,11 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (email, password, options = {}) => {
+    const rememberMe = options.rememberMe !== false;
+    const storage = rememberMe ? localStorage : sessionStorage;
+    const otherStorage = rememberMe ? sessionStorage : localStorage;
+
     try {
       setError(null);
       const response = await api.post('/auth/login', {
@@ -45,8 +57,10 @@ export const AuthProvider = ({ children }) => {
         password,
       });
       const { user: loggedInUser, accessToken, refreshToken } = response.data;
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
+      otherStorage.removeItem('accessToken');
+      otherStorage.removeItem('refreshToken');
+      storage.setItem('accessToken', accessToken);
+      storage.setItem('refreshToken', refreshToken);
 
       // Immediately hydrate full profile so dashboard can show department/program/profile image.
       let hydratedUser = loggedInUser;
@@ -96,6 +110,8 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
     setUser(null);
     window.location.href = '/login';
   };

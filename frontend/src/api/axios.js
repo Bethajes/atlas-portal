@@ -8,6 +8,27 @@ function apiBaseUrl() {
 
 const BASE_URL = apiBaseUrl();
 
+function getAccessToken() {
+  return sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');
+}
+
+function getRefreshTokenInfo() {
+  const sessionToken = sessionStorage.getItem('refreshToken');
+  if (sessionToken) return { refreshToken: sessionToken, storage: sessionStorage };
+  const localToken = localStorage.getItem('refreshToken');
+  if (localToken) return { refreshToken: localToken, storage: localStorage };
+  return { refreshToken: null, storage: null };
+}
+
+function clearAuthStorage() {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+  sessionStorage.removeItem('accessToken');
+  sessionStorage.removeItem('refreshToken');
+  sessionStorage.removeItem('user');
+}
+
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -18,7 +39,7 @@ const api = axios.create({
 // Request interceptor to add token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -37,14 +58,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       
-      const refreshToken = localStorage.getItem('refreshToken');
+      const { refreshToken, storage } = getRefreshTokenInfo();
       
       // If no refresh token, just fail
       if (!refreshToken) {
         console.log('No refresh token available');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        clearAuthStorage();
         return Promise.reject(error);
       }
       
@@ -55,7 +74,7 @@ api.interceptors.response.use(
         });
         
         const { accessToken } = response.data;
-        localStorage.setItem('accessToken', accessToken);
+        (storage || localStorage).setItem('accessToken', accessToken);
         
         // Retry the original request
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
@@ -64,9 +83,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed - clear everything
         console.log('Token refresh failed');
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
+        clearAuthStorage();
         return Promise.reject(refreshError);
       }
     }

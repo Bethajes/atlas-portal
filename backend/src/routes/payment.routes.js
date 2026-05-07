@@ -3,6 +3,12 @@ const router = express.Router();
 const { authenticateToken: protect } = require('../middleware/auth.middleware');
 const { allowRoles } = require('../middleware/role.middleware');
 const {
+  initiateUnifiedPayment,
+  getUnifiedPaymentStatus,
+  awashWebhook,
+  initializeChapaPayment,
+  chapaWebhook,
+  getPaymentStatus,
   initiatePayment,
   verifyPayment,
   paymentWebhook,
@@ -16,12 +22,23 @@ const {
   generateInvoices,
   applyDiscountEndpoint,
 } = require('../controllers/payment.controller');
+
 const upload = require('../utils/upload');
 
-// Public webhook — bank calls this (no auth)
-router.post('/webhook', paymentWebhook);
+// Unified Payment Routes (Scalable architecture)
+router.post('/initiate', protect, allowRoles('STUDENT'), initiateUnifiedPayment);
+router.get('/status/:reference', protect, allowRoles('STUDENT'), getUnifiedPaymentStatus);
+router.post('/awash', awashWebhook); // Mounted at /api/webhooks/awash in server.js
 
-// Student
+// Chapa Payments (Production Ready)
+router.post('/initialize', protect, allowRoles('STUDENT'), initializeChapaPayment);
+router.get('/status/:tx_ref', protect, allowRoles('STUDENT'), getPaymentStatus);
+
+// Public webhook — bank calls this (no auth)
+router.post('/webhook', chapaWebhook);
+router.post('/legacy-webhook', paymentWebhook);
+
+// Student legacy/manual flows
 router.post('/initiate', protect, allowRoles('STUDENT'), initiatePayment);
 router.post('/verify', protect, allowRoles('STUDENT'), verifyPayment);
 router.get('/my-invoices', protect, allowRoles('STUDENT'), getMyInvoices);

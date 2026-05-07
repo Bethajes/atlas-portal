@@ -7,7 +7,7 @@ import {
   Users, BookOpen, GraduationCap, CheckCircle, AlertCircle,
   Calendar, CreditCard, FileText, LayoutDashboard, Settings,
   Search, ArrowUpRight, TrendingUp, Clock, Lock, Unlock,
-  ChevronRight, RefreshCw, X, AlertTriangle, Bell
+  ChevronRight, RefreshCw, X, AlertTriangle, Bell, LogOut, Menu
 } from 'lucide-react';
 
 const StatusPill = ({ status }) => {
@@ -44,6 +44,7 @@ const RegistrarDashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({});
   const [semesters, setSemesters] = useState([]);
@@ -262,9 +263,20 @@ const RegistrarDashboard = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden" 
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-56 bg-slate-900 hidden lg:flex flex-col shrink-0 sticky top-0 h-screen">
-        <div className="px-5 py-5 border-b border-slate-700/50">
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 flex flex-col shrink-0 transition-transform duration-300 lg:static lg:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="px-5 py-5 border-b border-slate-700/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">A</div>
             <div>
@@ -272,10 +284,20 @@ const RegistrarDashboard = () => {
               <p className="text-slate-400 text-[11px]">Registrar</p>
             </div>
           </div>
+          <button 
+            className="lg:hidden p-1.5 text-slate-400 hover:text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <nav className="flex-1 px-3 py-4 space-y-0.5">
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {navItems.map(({ id, label, Icon, badge }) => (
-            <button key={id} onClick={() => { setActiveTab(id); if (id === 'lifecycle') fetchStudents(); }}
+            <button key={id} onClick={() => { 
+              setActiveTab(id); 
+              if (id === 'lifecycle') fetchStudents(); 
+              setIsMobileMenuOpen(false);
+            }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 activeTab === id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
               }`}>
@@ -287,17 +309,23 @@ const RegistrarDashboard = () => {
           <div className="pt-4 border-t border-slate-700/50 mt-4">
             {[
               { label: 'Admissions',    to: '/registrar/admissions' },
-              { label: 'Payments',      to: '/registrar/payments' },
+              { label: 'Payments',      to: '/registrar/payments', badge: stats.unpaidStudentsCount },
               { label: 'Students',      to: '/registrar/students' },
               { label: 'Academic Setup',to: '/registrar/setup' },
-            ].map(({ label, to }) => (
-              <Link key={to} to={to} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 transition">
-                <ChevronRight className="w-4 h-4" />{label}
+            ].map(({ label, to, badge }) => (
+              <Link key={to} to={to} onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-700/50 transition">
+                <ChevronRight className="w-4 h-4 shrink-0" />
+                <span className="flex-1">{label}</span>
+                {badge > 0 && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-red-500 text-white">
+                    {badge}
+                  </span>
+                )}
               </Link>
             ))}
           </div>
         </nav>
-        <div className="px-4 py-4 border-t border-slate-700/50">
+        <div className="px-4 py-4 border-t border-slate-700/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">{user?.name?.charAt(0)}</div>
             <div className="min-w-0">
@@ -305,15 +333,30 @@ const RegistrarDashboard = () => {
               <p className="text-slate-400 text-[10px]">Registrar</p>
             </div>
           </div>
+          <button 
+            onClick={logout}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition"
+            title="Log out"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-6 sticky top-0 z-10">
-          <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 w-64">
-            <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-            <input type="text" placeholder="Search students, records…" className="bg-transparent border-none focus:ring-0 text-sm ml-2 w-full outline-none text-gray-700 placeholder-gray-400" />
+        <header className="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-10">
+          <div className="flex items-center gap-4">
+            <button 
+              className="lg:hidden p-2 -ml-2 text-gray-500 hover:bg-gray-100 rounded-lg transition"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 w-48 md:w-64">
+              <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              <input type="text" placeholder="Search..." className="bg-transparent border-none focus:ring-0 text-sm ml-2 w-full outline-none text-gray-700 placeholder-gray-400" />
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button onClick={fetchAll} className="p-2 rounded-lg hover:bg-gray-100 transition text-gray-400">
@@ -324,6 +367,13 @@ const RegistrarDashboard = () => {
               {unread > 0 && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center font-bold">{unread}</span>}
             </div>
             <div className="w-7 h-7 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-xs">{user?.name?.charAt(0)}</div>
+            <button 
+              onClick={logout}
+              className="flex items-center gap-2 text-gray-500 hover:text-red-600 transition text-xs font-medium border-l border-gray-200 pl-3"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
           </div>
         </header>
 
@@ -357,17 +407,25 @@ const RegistrarDashboard = () => {
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {[
                   { label: 'Total Students',        value: stats.totalStudents || 0,        Icon: Users,         color: 'text-blue-700',    bg: 'bg-blue-50' },
                   { label: 'Pending Registrations', value: stats.pendingRegistrations || 0, Icon: Clock,         color: 'text-amber-700',   bg: 'bg-amber-50' },
                   { label: 'New Applications',      value: stats.pendingApplications || 0,  Icon: GraduationCap, color: 'text-indigo-700',  bg: 'bg-indigo-50' },
+                  { label: 'Unpaid Students',       value: stats.unpaidStudentsCount || 0,  Icon: AlertTriangle, color: 'text-red-700',     bg: 'bg-red-50', link: '/registrar/payments?status=UNPAID' },
                   { label: 'Revenue This Month',    value: `${(stats.paymentsThisMonth || 0).toLocaleString()} ETB`, Icon: TrendingUp, color: 'text-emerald-700', bg: 'bg-emerald-50' },
-                ].map(({ label, value, Icon, color, bg }) => (
+                ].map(({ label, value, Icon, color, bg, link }) => (
                   <div key={label} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
                     <div className={`${bg} ${color} p-2.5 rounded-lg w-fit mb-3`}><Icon className="w-4 h-4" /></div>
                     <p className="text-xs font-medium text-gray-500">{label}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-0.5">{value}</p>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <p className="text-2xl font-bold text-gray-900">{value}</p>
+                      {link && (
+                        <Link to={link} className="text-blue-600 hover:text-blue-800">
+                          <ArrowUpRight className="w-4 h-4" />
+                        </Link>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

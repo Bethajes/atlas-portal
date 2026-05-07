@@ -14,6 +14,7 @@ const {
   getApplications,
   processApplication,
   getStudents,
+  getUnpaidStudents,
   getDashboardStats,
   progressStudentHandler,
   graduateStudentHandler,
@@ -61,6 +62,7 @@ router.put('/admissions/:id/process', processApplication);
 
 // Students
 router.get('/students', getStudents);
+router.get('/students/unpaid', getUnpaidStudents);
 
 // Lifecycle management
 router.post('/students/:studentId/progress', progressStudentHandler);

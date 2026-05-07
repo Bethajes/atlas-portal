@@ -65,6 +65,8 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/department-head', departmentHeadRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/pay', paymentRoutes);
+app.use('/api/webhooks', paymentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/registration', registrationRoutes);
 app.use('/api/admin', adminRoutes);

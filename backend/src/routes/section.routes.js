@@ -9,6 +9,7 @@ const {
   deleteSection,
   enrollInSection,
   assignGrade,
+  getMyStudents,
   getMySections,
   getMyEnrollments,
 } = require('../controllers/section.controller');
@@ -18,6 +19,9 @@ router.get('/my-enrollments', authenticateToken, authorizeRoles('STUDENT'), getM
 
 // Instructor — view their assigned sections
 router.get('/my-sections', authenticateToken, authorizeRoles('INSTRUCTOR'), getMySections);
+
+// Instructor — unified student list across sections (for fast search/dashboard)
+router.get('/my-students', authenticateToken, authorizeRoles('INSTRUCTOR'), getMyStudents);
 
 // Admin/Registrar — manage sections
 router.post('/', authenticateToken, authorizeRoles('ADMIN', 'REGISTRAR'), createSection);
