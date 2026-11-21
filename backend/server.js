@@ -24,7 +24,13 @@ const { getPrograms } = require('./src/controllers/academic.controller');
 
 
 // 2. Middleware
-const configuredOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+const _normalizeOrigin = (val, fallback) => {
+  if (!val) return fallback;
+  if (val.startsWith('http://') || val.startsWith('https://')) return val;
+  if (val.includes('localhost') || val.includes('127.0.0.1')) return `http://${val}`;
+  return `https://${val}`;
+};
+const configuredOrigin = _normalizeOrigin(process.env.FRONTEND_URL, 'http://localhost:5173');
 const allowedOrigins = new Set([
   configuredOrigin,
   'http://localhost:5173',

@@ -1,12 +1,7 @@
 import axios from 'axios';
+import { API_BASE_URL, API_ORIGIN } from '../config/api';
 
-function apiBaseUrl() {
-  const raw = import.meta.env.VITE_API_URL?.replace(/\/$/, '');
-  if (!raw) return 'http://localhost:5000/api';
-  return raw.endsWith('/api') ? raw : `${raw}/api`;
-}
-
-const BASE_URL = apiBaseUrl();
+const BASE_URL = API_BASE_URL;
 
 function getAccessToken() {
   return sessionStorage.getItem('accessToken') || localStorage.getItem('accessToken');

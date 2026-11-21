@@ -1,3 +1,4 @@
+import { API_ORIGIN } from '../config/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -139,7 +140,7 @@ const RegistrarStudents = () => {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-gray-50 flex items-center justify-center overflow-hidden border border-gray-100 shadow-sm">
                       {student.user?.profileImage ? (
-                        <img src={`${import.meta.env.VITE_API_URL}${student.user.profileImage}`} alt="profile" className="w-full h-full object-cover" />
+                        <img src={`${API_ORIGIN}${student.user.profileImage}`} alt="profile" className="w-full h-full object-cover" />
                       ) : (
                         <User className="w-6 h-6 text-gray-300" />
                       )}
@@ -164,7 +165,7 @@ const RegistrarStudents = () => {
                   <div className="flex flex-col md:flex-row md:items-center gap-8">
                     <div className="w-24 h-24 rounded-3xl bg-white/20 backdrop-blur-md border-2 border-white/30 overflow-hidden shadow-2xl flex-shrink-0">
                       {selectedStudent.user?.profileImage ? (
-                        <img src={`${import.meta.env.VITE_API_URL}${selectedStudent.user.profileImage}`} alt="profile" className="w-full h-full object-cover" />
+                        <img src={`${API_ORIGIN}${selectedStudent.user.profileImage}`} alt="profile" className="w-full h-full object-cover" />
                       ) : (
                         <User className="w-12 h-12 text-white/50 mx-auto mt-6" />
                       )}

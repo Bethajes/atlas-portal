@@ -1,3 +1,4 @@
+import { API_ORIGIN } from '../config/api';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
@@ -388,12 +389,12 @@ const RegistrarPayments = () => {
                         selectedPayment.proofUrl ? (
                         <div className="group relative rounded-3xl overflow-hidden border border-gray-200 shadow-sm bg-gray-100 aspect-[4/5]">
                           <img 
-                            src={`${import.meta.env.VITE_API_URL}${selectedPayment.proofUrl}`} 
+                            src={`${API_ORIGIN}${selectedPayment.proofUrl}`} 
                             alt="Payment Proof" 
                             className="w-full h-full object-contain"
                           />
                           <a 
-                            href={`${import.meta.env.VITE_API_URL}${selectedPayment.proofUrl}`} 
+                            href={`${API_ORIGIN}${selectedPayment.proofUrl}`} 
                             target="_blank" 
                             rel="noreferrer"
                             className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center"

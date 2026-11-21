@@ -1,3 +1,4 @@
+import { API_ORIGIN } from '../config/api';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
@@ -174,7 +175,7 @@ const RegistrarAdmissions = () => {
                     <div className="flex items-center gap-6">
                       <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center overflow-hidden border-2 border-white/30 shadow-xl">
                         {selectedApp.documents?.photoUrl ? (
-                          <img src={`${import.meta.env.VITE_API_URL}${selectedApp.documents.photoUrl}`} alt="photo" className="w-full h-full object-cover" />
+                          <img src={`${API_ORIGIN}${selectedApp.documents.photoUrl}`} alt="photo" className="w-full h-full object-cover" />
                         ) : (
                           <Users className="w-10 h-10 text-white/50" />
                         )}
@@ -289,7 +290,7 @@ const RegistrarAdmissions = () => {
                         <div className="space-y-3">
                           {selectedApp.documents?.transcriptUrl && (
                             <a 
-                              href={`${import.meta.env.VITE_API_URL}${selectedApp.documents.transcriptUrl}`} 
+                              href={`${API_ORIGIN}${selectedApp.documents.transcriptUrl}`} 
                               target="_blank" 
                               rel="noreferrer"
                               className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-brand-200 hover:bg-brand-50/30 transition group"
@@ -308,7 +309,7 @@ const RegistrarAdmissions = () => {
                           )}
                           {selectedApp.documents?.idDocumentUrl && (
                             <a 
-                              href={`${import.meta.env.VITE_API_URL}${selectedApp.documents.idDocumentUrl}`} 
+                              href={`${API_ORIGIN}${selectedApp.documents.idDocumentUrl}`} 
                               target="_blank" 
                               rel="noreferrer"
                               className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-brand-200 hover:bg-brand-50/30 transition group"

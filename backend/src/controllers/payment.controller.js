@@ -134,8 +134,8 @@ const initializeChapaPayment = async (req, res) => {
       first_name: student.firstName || student.user.name.split(' ')[0],
       last_name: student.user.name.split(' ')[1] || '',
       tx_ref,
-      callback_url: `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/pay/webhook`,
-      return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-status?tx_ref=${tx_ref}`,
+      callback_url: `${(process.env.BACKEND_URL ? (process.env.BACKEND_URL.startsWith('http') ? process.env.BACKEND_URL : (process.env.BACKEND_URL.includes('localhost') ? 'http://' : 'https://') + process.env.BACKEND_URL) : (process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000'))}/api/pay/webhook`,
+      return_url: `${(process.env.FRONTEND_URL ? (process.env.FRONTEND_URL.startsWith('http') ? process.env.FRONTEND_URL : (process.env.FRONTEND_URL.includes('localhost') ? 'http://' : 'https://') + process.env.FRONTEND_URL) : 'http://localhost:5173')}/payment-status?tx_ref=${tx_ref}`,
       customization: {
         title: 'Tuition Fee Payment',
         description: 'Payment for New Generation University College Portal',

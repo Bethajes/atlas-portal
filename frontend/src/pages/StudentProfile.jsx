@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/axios';
+import { API_ORIGIN } from '../config/api';
 import { Mail, Building2, GraduationCap, CheckCircle2, PencilLine, Save } from 'lucide-react';
 import StudentPortalLayout from '../components/StudentPortalLayout';
 
@@ -12,7 +13,7 @@ export default function StudentProfile() {
   const [showEditor, setShowEditor] = useState(false);
   const [form, setForm] = useState({ firstName: '', fatherName: '', photo: null });
   const [imageFailed, setImageFailed] = useState(false);
-  const apiHost = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || 'http://localhost:5000';
+  const apiHost = API_ORIGIN;
 
   useEffect(() => {
     const loadProfile = async () => {
