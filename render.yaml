@@ -21,10 +21,7 @@ services:
       - key: REFRESH_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: atlas-portal-frontend
-          property: host
+        sync: false
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
@@ -37,25 +34,6 @@ services:
         sync: false
       - key: ARIFPAY_WEBHOOK_SECRET
         sync: false
-
-  - type: web
-    name: atlas-portal-frontend
-    env: static
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: NODE_VERSION
-        value: 20.11.0
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: atlas-portal-backend
-          property: host
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
 
 databases:
   - name: atlas-portal-db
