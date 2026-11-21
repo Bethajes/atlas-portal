@@ -20,11 +20,6 @@ services:
         generateValue: true
       - key: REFRESH_SECRET
         generateValue: true
-      - key: BACKEND_URL
-        fromService:
-          type: web
-          name: atlas-portal-backend
-          property: host
       - key: FRONTEND_URL
         fromService:
           type: web
