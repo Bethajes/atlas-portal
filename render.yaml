@@ -21,7 +21,7 @@ services:
       - key: REFRESH_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        sync: false
+        value: https://atlas-portal-theta.vercel.app
       - key: EMAIL_USER
         sync: false
       - key: EMAIL_PASS
