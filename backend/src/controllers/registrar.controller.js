@@ -14,11 +14,11 @@ const generateInstitutionalEmail = async (firstName, fatherName) => {
   const first = normalizeNamePart(firstName) || 'student';
   const father = normalizeNamePart(fatherName) || 'atlas';
   const base = `${first}.${father}`;
-  let institutionalEmail = `${base}@atlas.edu.et`;
+  let institutionalEmail = `${base}@ngu.edu.et`;
   let suffix = 1;
 
   while (await prisma.user.findUnique({ where: { institutionalEmail } })) {
-    institutionalEmail = `${base}${suffix}@atlas.edu.et`;
+    institutionalEmail = `${base}${suffix}@ngu.edu.et`;
     suffix += 1;
   }
 
@@ -287,7 +287,7 @@ const recordPayment = async (req, res) => {
     });
 
     // Update student registration payment status if fully paid
-    if (status === 'PAID') {
+    if (status === 'SUCCESSFUL') {
       await prisma.semesterRegistration.updateMany({
         where: {
           studentId: invoice.studentId,
@@ -785,11 +785,11 @@ const processApplication = async (req, res) => {
 
     if (status === 'ACCEPTED') {
       const baseLocal = `${application.firstName.toLowerCase()}.${application.lastName.toLowerCase()}`.replace(/[^a-z0-9.]/g, '');
-      let institutionalEmail = `${baseLocal}@atlas.edu.et`;
+      let institutionalEmail = `${baseLocal}@ngu.edu.et`;
       let suffix = 0;
       while (await prisma.user.findUnique({ where: { institutionalEmail } })) {
         suffix += 1;
-        institutionalEmail = `${baseLocal}${suffix}@atlas.edu.et`;
+        institutionalEmail = `${baseLocal}${suffix}@ngu.edu.et`;
       }
 
       const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';

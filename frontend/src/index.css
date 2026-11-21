@@ -1,3 +1,58 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-primary: #1b4f72;
+    --brand-primary-dark: #153e5c;
+    --brand-primary-light: #2e86ab;
+    --brand-accent: #c62828;
+    --brand-surface: #ffffff;
+    --brand-bg: #f4f7fb;
+    --brand-text: #0f172a;
+    --brand-muted: #64748b;
+    --brand-border: #e2e8f0;
+    --brand-radius: 14px;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  .dark body {
+    @apply bg-slate-950 text-slate-100;
+  }
+
+  ::selection {
+    background: rgba(27, 79, 114, 0.16);
+    color: #0f172a;
+  }
+}
+
+@layer components {
+  .portal-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .portal-card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-card;
+  }
+
+  .dark .portal-card {
+    @apply border-slate-700/60 bg-slate-800;
+  }
+
+  .page-title {
+    @apply text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50;
+  }
+
+  .page-subtitle {
+    @apply mt-1 text-sm text-slate-500 dark:text-slate-400;
+  }
+}

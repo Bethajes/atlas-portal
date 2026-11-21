@@ -32,6 +32,7 @@ const Apply = () => {
   const [programs, setPrograms] = useState([]);
   const [programLoading, setProgramLoading] = useState(false);
   const [semesters, setSemesters] = useState([]);
+  const [loadError, setLoadError] = useState({ departments: false, semesters: false });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [accountInfo, setAccountInfo] = useState(null);
   
@@ -64,21 +65,31 @@ const Apply = () => {
 
   const fetchInitialData = async () => {
     setInitialDataLoading(true);
-    try {
-      const [deptRes, semRes] = await Promise.all([
-        api.get('/academic/departments'),
-        api.get('/academic/semesters')
-      ]);
-      setDepartments(deptRes.data.data || []);
-      const semesterData = semRes.data.data || [];
+    // Don't let one failed request hide data that loaded successfully.
+    const [deptRes, semRes] = await Promise.allSettled([
+      api.get('/academic/departments'),
+      api.get('/academic/semesters')
+    ]);
+
+    if (deptRes.status === 'fulfilled') {
+      setDepartments(deptRes.value.data?.data || []);
+    } else {
+      console.error('Failed to fetch departments:', deptRes.reason);
+    }
+
+    if (semRes.status === 'fulfilled') {
+      const semesterData = semRes.value.data?.data || [];
       const activeSemesters = semesterData.filter((s) => s.isActive);
       setSemesters(activeSemesters.length ? activeSemesters : semesterData);
-    } catch (error) {
-      console.error('Failed to fetch initial data:', error);
-      showMessage('error', error.response?.data?.message || 'Failed to load departments/semesters');
-    } finally {
-      setInitialDataLoading(false);
+    } else {
+      console.error('Failed to fetch semesters:', semRes.reason);
     }
+
+    setLoadError({
+      departments: deptRes.status === 'rejected',
+      semesters: semRes.status === 'rejected',
+    });
+    setInitialDataLoading(false);
   };
 
   const fetchPrograms = async (deptId) => {
@@ -187,7 +198,7 @@ const Apply = () => {
       {[1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="flex items-center">
           <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all shadow-sm ${
-            step === i ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 
+            step === i ? 'bg-brand-600 text-white ring-4 ring-blue-100' : 
             step > i ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
           }`}>
             {step > i ? <CheckCircle className="w-5 h-5" /> : i}
@@ -205,11 +216,11 @@ const Apply = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl text-white shadow-xl shadow-blue-200 mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-600 rounded-2xl text-white shadow-xl shadow-brand-200 mb-6">
             <GraduationCap className="w-10 h-10" />
           </div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Admission Application</h1>
-          <p className="mt-3 text-lg text-gray-500 max-w-md mx-auto">Join Atlas Health College and start your journey towards excellence in healthcare.</p>
+          <p className="mt-3 text-lg text-gray-500 max-w-md mx-auto">Join New Generation University College and start your journey towards excellence in healthcare.</p>
         </div>
 
         {message.text && step !== 5 && (
@@ -218,6 +229,28 @@ const Apply = () => {
           }`}>
             {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
             <span className="text-sm font-bold">{message.text}</span>
+          </div>
+        )}
+
+        {(loadError.departments || loadError.semesters) && step !== 5 && (
+          <div className="mb-8 p-4 rounded-2xl flex items-center justify-between gap-4 border border-red-100 bg-red-50 text-red-700">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <span className="text-sm font-bold">
+                Failed to load {[
+                  loadError.departments && 'departments',
+                  loadError.semesters && 'semesters',
+                ].filter(Boolean).join(' and ')}. Check your connection and try again.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={fetchInitialData}
+              disabled={initialDataLoading}
+              className="shrink-0 px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition disabled:opacity-50"
+            >
+              {initialDataLoading ? 'Retrying...' : 'Retry'}
+            </button>
           </div>
         )}
 
@@ -230,40 +263,40 @@ const Apply = () => {
             {step === 1 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                  <User className="w-6 h-6 text-blue-600" />
+                  <User className="w-6 h-6 text-brand-600" />
                   <h2 className="text-xl font-bold text-gray-900">Personal Details</h2>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">First Name</label>
-                    <input type="text" name="firstName" required value={formData.firstName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Enter first name" />
+                    <input type="text" name="firstName" required value={formData.firstName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Enter first name" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Father Name</label>
-                    <input type="text" name="lastName" required value={formData.lastName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Enter father name" />
+                    <input type="text" name="lastName" required value={formData.lastName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Enter father name" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-400" /> Email Address
                     </label>
-                    <input type="email" name="email" required value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="name@example.com" />
+                    <input type="email" name="email" required value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="name@example.com" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" /> Phone Number
                     </label>
-                    <input type="tel" name="phone" required value={formData.phone} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="+251 ..." />
+                    <input type="tel" name="phone" required value={formData.phone} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="+251 ..." />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" /> Date of Birth
                     </label>
-                    <input type="date" name="dateOfBirth" required value={formData.dateOfBirth} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" />
+                    <input type="date" name="dateOfBirth" required value={formData.dateOfBirth} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Gender</label>
-                    <select name="gender" required value={formData.gender} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none">
+                    <select name="gender" required value={formData.gender} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none">
                       <option value="">Select Gender</option>
                       <option value="MALE">Male</option>
                       <option value="FEMALE">Female</option>
@@ -272,7 +305,7 @@ const Apply = () => {
                 </div>
                 
                 <div className="flex justify-end pt-6">
-                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
                     Next: Academic Info <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -283,24 +316,24 @@ const Apply = () => {
             {step === 2 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                  <BookOpen className="w-6 h-6 text-blue-600" />
+                  <BookOpen className="w-6 h-6 text-brand-600" />
                   <h2 className="text-xl font-bold text-gray-900">Academic Background</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Select Department</label>
-                    <select name="departmentId" required value={formData.departmentId} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none bg-white">
+                    <select name="departmentId" required value={formData.departmentId} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none bg-white">
                       <option value="">Choose a department...</option>
                       {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
                     </select>
-                    {!initialDataLoading && departments.length === 0 && (
+                    {!initialDataLoading && !loadError.departments && departments.length === 0 && (
                       <p className="text-xs text-amber-600 mt-2">No departments found yet. Ask admin to create departments first.</p>
                     )}
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Select Program</label>
-                    <select name="programId" required value={formData.programId} onChange={handleInputChange} disabled={!formData.departmentId} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none bg-white disabled:bg-gray-50 disabled:cursor-not-allowed">
+                    <select name="programId" required value={formData.programId} onChange={handleInputChange} disabled={!formData.departmentId} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none bg-white disabled:bg-gray-50 disabled:cursor-not-allowed">
                       <option value="">
                         {formData.departmentId ? (programLoading ? 'Loading programs...' : 'Choose a program...') : 'Select department first'}
                       </option>
@@ -312,18 +345,18 @@ const Apply = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Intake Semester</label>
-                    <select name="intakeSemesterId" required value={formData.intakeSemesterId} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none">
+                    <select name="intakeSemesterId" required value={formData.intakeSemesterId} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none">
                       <option value="">Choose intake...</option>
                       {semesters.map(s => <option key={s.id} value={s.id}>{s.name} {s.year}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Previous School/College</label>
-                    <input type="text" name="previousSchool" value={formData.previousSchool} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Name of school" />
+                    <input type="text" name="previousSchool" value={formData.previousSchool} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Name of school" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Previous Grade (GPA/Result)</label>
-                    <input type="number" step="0.01" name="previousGrade" value={formData.previousGrade} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="e.g. 3.5" />
+                    <input type="number" step="0.01" name="previousGrade" value={formData.previousGrade} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="e.g. 3.5" />
                   </div>
                 </div>
 
@@ -331,7 +364,7 @@ const Apply = () => {
                   <button type="button" onClick={prevStep} className="text-gray-500 font-bold hover:text-gray-700 transition flex items-center gap-2">
                     <ChevronLeft className="w-5 h-5" /> Back
                   </button>
-                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
                     Next: Documents <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -342,7 +375,7 @@ const Apply = () => {
             {step === 3 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                  <HeartPulse className="w-6 h-6 text-blue-600" />
+                  <HeartPulse className="w-6 h-6 text-brand-600" />
                   <h2 className="text-xl font-bold text-gray-900">Emergency & Family</h2>
                 </div>
 
@@ -351,9 +384,9 @@ const Apply = () => {
                   <div className="space-y-4">
                     <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider">Emergency Contact</h3>
                     <div className="space-y-4">
-                      <input type="text" name="emergencyContactName" required value={formData.emergencyContactName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Full Name" />
-                      <input type="tel" name="emergencyContactPhone" required value={formData.emergencyContactPhone} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Phone Number" />
-                      <input type="text" name="emergencyContactRelation" required value={formData.emergencyContactRelation} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Relation (e.g. Mother, Brother)" />
+                      <input type="text" name="emergencyContactName" required value={formData.emergencyContactName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Full Name" />
+                      <input type="tel" name="emergencyContactPhone" required value={formData.emergencyContactPhone} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Phone Number" />
+                      <input type="text" name="emergencyContactRelation" required value={formData.emergencyContactRelation} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Relation (e.g. Mother, Brother)" />
                     </div>
                   </div>
 
@@ -361,9 +394,9 @@ const Apply = () => {
                   <div className="space-y-4">
                     <h3 className="text-sm font-black text-gray-400 uppercase tracking-wider">Guardian (if applicable)</h3>
                     <div className="space-y-4">
-                      <input type="text" name="guardianName" value={formData.guardianName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Guardian Name" />
-                      <input type="tel" name="guardianPhone" value={formData.guardianPhone} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Guardian Phone" />
-                      <input type="text" name="guardianRelation" value={formData.guardianRelation} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Relation" />
+                      <input type="text" name="guardianName" value={formData.guardianName} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Guardian Name" />
+                      <input type="tel" name="guardianPhone" value={formData.guardianPhone} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Guardian Phone" />
+                      <input type="text" name="guardianRelation" value={formData.guardianRelation} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Relation" />
                     </div>
                   </div>
                 </div>
@@ -372,7 +405,7 @@ const Apply = () => {
                   <button type="button" onClick={prevStep} className="text-gray-500 font-bold hover:text-gray-700 transition flex items-center gap-2">
                     <ChevronLeft className="w-5 h-5" /> Back
                   </button>
-                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
                     Next: Documents <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -383,14 +416,14 @@ const Apply = () => {
             {step === 4 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                  <Upload className="w-6 h-6 text-blue-600" />
+                  <Upload className="w-6 h-6 text-brand-600" />
                   <h2 className="text-xl font-bold text-gray-900">Required Documents</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className={`p-6 rounded-2xl border-2 border-dashed transition-all group ${files.photo ? 'border-emerald-500 bg-emerald-50/30' : 'border-gray-200 hover:border-blue-300'}`}>
                     <label className="flex flex-col items-center cursor-pointer">
-                      <Camera className={`w-10 h-10 mb-3 ${files.photo ? 'text-emerald-500' : 'text-gray-300 group-hover:text-blue-500'}`} />
+                      <Camera className={`w-10 h-10 mb-3 ${files.photo ? 'text-emerald-500' : 'text-gray-300 group-hover:text-brand-500'}`} />
                       <span className="text-sm font-bold text-gray-700">Passport Photo</span>
                       <input type="file" name="photo" accept="image/*" required onChange={handleFileChange} className="hidden" />
                       {files.photo ? (
@@ -403,7 +436,7 @@ const Apply = () => {
 
                   <div className={`p-6 rounded-2xl border-2 border-dashed transition-all group ${files.transcript ? 'border-emerald-500 bg-emerald-50/30' : 'border-gray-200 hover:border-blue-300'}`}>
                     <label className="flex flex-col items-center cursor-pointer">
-                      <FileText className={`w-10 h-10 mb-3 ${files.transcript ? 'text-emerald-500' : 'text-gray-300 group-hover:text-blue-500'}`} />
+                      <FileText className={`w-10 h-10 mb-3 ${files.transcript ? 'text-emerald-500' : 'text-gray-300 group-hover:text-brand-500'}`} />
                       <span className="text-sm font-bold text-gray-700">Transcript</span>
                       <input type="file" name="transcript" accept=".pdf,image/*" required onChange={handleFileChange} className="hidden" />
                       {files.transcript ? (
@@ -416,7 +449,7 @@ const Apply = () => {
 
                   <div className={`p-6 rounded-2xl border-2 border-dashed transition-all group ${files.idDocument ? 'border-emerald-500 bg-emerald-50/30' : 'border-gray-200 hover:border-blue-300'}`}>
                     <label className="flex flex-col items-center cursor-pointer">
-                      <ShieldCheck className={`w-10 h-10 mb-3 ${files.idDocument ? 'text-emerald-500' : 'text-gray-300 group-hover:text-blue-500'}`} />
+                      <ShieldCheck className={`w-10 h-10 mb-3 ${files.idDocument ? 'text-emerald-500' : 'text-gray-300 group-hover:text-brand-500'}`} />
                       <span className="text-sm font-bold text-gray-700">ID Document</span>
                       <input type="file" name="idDocument" accept=".pdf,image/*" required onChange={handleFileChange} className="hidden" />
                       {files.idDocument ? (
@@ -432,7 +465,7 @@ const Apply = () => {
                   <button type="button" onClick={prevStep} className="text-gray-500 font-bold hover:text-gray-700 transition flex items-center gap-2">
                     <ChevronLeft className="w-5 h-5" /> Back
                   </button>
-                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <button type="button" disabled={!canGoNext()} onClick={nextStep} className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition flex items-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed">
                     Next: Final Review <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
@@ -443,14 +476,14 @@ const Apply = () => {
             {step === 5 && (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                  <Info className="w-6 h-6 text-blue-600" />
+                  <Info className="w-6 h-6 text-brand-600" />
                   <h2 className="text-xl font-bold text-gray-900">Final Information</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Marital Status</label>
-                    <select name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none">
+                    <select name="maritalStatus" value={formData.maritalStatus} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none">
                       <option value="SINGLE">Single</option>
                       <option value="MARRIED">Married</option>
                       <option value="DIVORCED">Divorced</option>
@@ -459,14 +492,14 @@ const Apply = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Religion (Optional)</label>
-                    <input type="text" name="religion" value={formData.religion} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" />
+                    <input type="text" name="religion" value={formData.religion} onChange={handleInputChange} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" />
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">Personal Statement</label>
-                    <textarea name="personalStatement" value={formData.personalStatement} onChange={handleInputChange} rows="4" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition-all outline-none" placeholder="Tell us why you want to join Atlas Health College..."></textarea>
+                    <textarea name="personalStatement" value={formData.personalStatement} onChange={handleInputChange} rows="4" className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-4 focus:ring-blue-50 focus:border-brand-500 transition-all outline-none" placeholder="Tell us why you want to join New Generation University College..."></textarea>
                   </div>
 
                   <div className="bg-amber-50 p-6 rounded-2xl border border-amber-100 flex gap-4">
@@ -482,7 +515,7 @@ const Apply = () => {
                   <button type="button" onClick={prevStep} className="text-gray-500 font-bold hover:text-gray-700 transition flex items-center gap-2">
                     <ChevronLeft className="w-5 h-5" /> Back
                   </button>
-                  <button type="submit" disabled={loading} className="bg-blue-600 text-white px-10 py-4 rounded-xl font-black hover:bg-blue-700 transition flex items-center gap-2 shadow-xl shadow-blue-200 disabled:opacity-50">
+                  <button type="submit" disabled={loading} className="bg-brand-600 text-white px-10 py-4 rounded-xl font-black hover:bg-brand-700 transition flex items-center gap-2 shadow-xl shadow-brand-200 disabled:opacity-50">
                     {loading ? 'Processing...' : (
                       <>Submit Application <ArrowRight className="w-5 h-5" /></>
                     )}
@@ -500,13 +533,13 @@ const Apply = () => {
                 <h2 className="text-3xl font-black text-gray-900 mb-4">Application Submitted Successfully</h2>
                 <p className="text-emerald-600 font-bold mb-3">Submission saved successfully</p>
                 <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto leading-relaxed">
-                  Thank you for applying to Atlas Health College. Your student account has been automatically created.
+                  Thank you for applying to New Generation University College. Your student account has been automatically created.
                 </p>
 
                 {accountInfo && (
-                  <div className="bg-blue-50 border border-blue-100 rounded-3xl p-8 mb-10 max-w-lg mx-auto text-left">
+                  <div className="bg-brand-50 border border-brand-100 rounded-3xl p-8 mb-10 max-w-lg mx-auto text-left">
                     <h3 className="text-blue-900 font-bold text-lg mb-4 flex items-center gap-2">
-                      <ShieldCheck className="w-6 h-6 text-blue-600" /> Account Credentials
+                      <ShieldCheck className="w-6 h-6 text-brand-600" /> Account Credentials
                     </h3>
                     <div className="space-y-4">
                       <div>
@@ -515,12 +548,12 @@ const Apply = () => {
                       </div>
                       <div>
                         <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Temporary Password</p>
-                        <div className="bg-white border border-blue-200 rounded-xl px-4 py-3 font-mono text-xl font-black text-blue-600 shadow-sm select-all">
+                        <div className="bg-white border border-brand-200 rounded-xl px-4 py-3 font-mono text-xl font-black text-brand-600 shadow-sm select-all">
                           {accountInfo.temporaryPassword}
                         </div>
                         <p className="text-[10px] text-blue-400 mt-2 font-bold italic">Please save this password securely. You will be required to change it on your first login.</p>
                       </div>
-                      <div className="pt-2 border-t border-blue-100">
+                      <div className="pt-2 border-t border-brand-100">
                         <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Student ID</p>
                         <p className="text-lg font-bold text-blue-900">{accountInfo.studentId}</p>
                       </div>
@@ -530,7 +563,7 @@ const Apply = () => {
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Link to="/" className="bg-gray-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition">Return Home</Link>
-                  <Link to="/login" className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100">Proceed to Login</Link>
+                  <Link to="/login" className="bg-brand-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-brand-700 transition shadow-lg shadow-blue-100">Proceed to Login</Link>
                 </div>
               </div>
             )}

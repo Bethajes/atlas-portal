@@ -373,8 +373,10 @@ async function main() {
         id: uid(),
         courseId:     courses[s.courseCode].id,
         name:         s.name,
+        sectionCode:  `${s.courseCode}-${s.name}`,
         instructorId: instructors[s.empId].id,
         semesterId:   activeSem.id,
+        departmentId: courses[s.courseCode].departmentId,
         maxStudents:  30,
         updatedAt:    now(),
       },
@@ -898,7 +900,17 @@ async function main() {
     const exists = await prisma.section.findFirst({ where: { courseId: course.id, name: 'A', semesterId: activeSem.id } });
     if (!exists && instrId) {
       await prisma.section.create({
-        data: { id: uid(), courseId: course.id, name: 'A', instructorId: instrId, semesterId: activeSem.id, maxStudents: 40, updatedAt: now() },
+        data: {
+          id: uid(),
+          courseId: course.id,
+          name: 'A',
+          sectionCode: `${course.code}-A`,
+          instructorId: instrId,
+          semesterId: activeSem.id,
+          departmentId: mktDept.id,
+          maxStudents: 40,
+          updatedAt: now(),
+        },
       });
     }
   }

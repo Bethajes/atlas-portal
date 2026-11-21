@@ -106,7 +106,7 @@ export default function StudentTranscript() {
           <div className="px-8 py-6 space-y-8">
             {(data.terms || []).map((term) => (
               <div key={term.label}>
-                <h2 className="text-xs font-bold text-blue-800 uppercase tracking-wider border-b border-blue-100 pb-2 mb-3">
+                <h2 className="text-xs font-bold text-brand-700 uppercase tracking-wider border-b border-brand-100 pb-2 mb-3">
                   {term.label}
                 </h2>
                 <div className="overflow-x-auto">

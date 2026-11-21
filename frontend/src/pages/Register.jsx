@@ -86,9 +86,9 @@ const Register = () => {
       setError('Name must be at least 3 characters');
       return false;
     }
-    const emailPattern = /^[a-zA-Z0-9._-]+@atlas\.edu\.et$/;
+    const emailPattern = /^[a-zA-Z0-9._-]+@(ngu\.edu\.et|atlas\.edu\.et)$/;
     if (!emailPattern.test(formData.institutionalEmail)) {
-      setError('Institutional email must be @atlas.edu.et format');
+      setError('Institutional email must be @ngu.edu.et format');
       return false;
     }
     return true;
@@ -153,9 +153,9 @@ const Register = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden border border-gray-100">
         {/* Header with Progress */}
-        <div className="bg-blue-600 p-8 text-white relative">
+        <div className="bg-brand-600 p-8 text-white relative">
           <div className="relative z-10">
-            <h1 className="text-3xl font-black tracking-tight">Atlas Portal</h1>
+            <h1 className="text-3xl font-black tracking-tight">NGUC Portal</h1>
             <p className="text-blue-100 mt-2 font-medium">Join our healthcare community</p>
           </div>
           <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -188,12 +188,12 @@ const Register = () => {
                 <div className="flex flex-col items-center mb-8">
                   <div 
                     onClick={() => fileInputRef.current.click()}
-                    className="w-24 h-24 bg-gray-100 rounded-3xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all group relative overflow-hidden"
+                    className="w-24 h-24 bg-gray-100 rounded-3xl border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-brand-500 hover:bg-brand-50 transition-all group relative overflow-hidden"
                   >
                     {imagePreview ? (
                       <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
                     ) : (
-                      <Camera className="text-gray-400 group-hover:text-blue-500" size={32} />
+                      <Camera className="text-gray-400 group-hover:text-brand-500" size={32} />
                     )}
                     <div className="absolute bottom-0 inset-x-0 bg-black/50 py-1 text-[10px] text-white text-center opacity-0 group-hover:opacity-100 transition-opacity font-bold">
                       UPLOAD PHOTO
@@ -218,7 +218,7 @@ const Register = () => {
                       value={formData.name}
                       onChange={handleChange}
                       placeholder="Full Name (e.g. Abebe Kebede)"
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium"
                       required
                     />
                   </div>
@@ -230,8 +230,8 @@ const Register = () => {
                       name="institutionalEmail"
                       value={formData.institutionalEmail}
                       onChange={handleChange}
-                      placeholder="Institutional Email (@atlas.edu.et)"
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium"
+                      placeholder="Institutional Email (@ngu.edu.et)"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium"
                       required
                     />
                   </div>
@@ -244,7 +244,7 @@ const Register = () => {
                       value={formData.recoveryEmail}
                       onChange={handleChange}
                       placeholder="Personal Recovery Email"
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium"
                       required
                     />
                   </div>
@@ -258,7 +258,7 @@ const Register = () => {
                       setStep(2);
                     }
                   }}
-                  className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
+                  className="w-full bg-brand-600 text-white py-4 rounded-2xl font-black hover:bg-brand-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
                 >
                   Continue <ChevronRight size={20} />
                 </button>
@@ -275,7 +275,7 @@ const Register = () => {
                       name="departmentId"
                       value={formData.departmentId}
                       onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium appearance-none"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium appearance-none"
                       required
                     >
                       <option value="">Select Department</option>
@@ -291,7 +291,7 @@ const Register = () => {
                       name="programId"
                       value={formData.programId}
                       onChange={handleChange}
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium appearance-none"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium appearance-none"
                       required
                     >
                       <option value="">Select Program</option>
@@ -311,7 +311,7 @@ const Register = () => {
                       value={formData.studentId}
                       onChange={handleChange}
                       placeholder="Student ID (Optional)"
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium"
                     />
                   </div>
                 </div>
@@ -332,7 +332,7 @@ const Register = () => {
                         setStep(3);
                       }
                     }}
-                    className="flex-[2] bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
+                    className="flex-[2] bg-brand-600 text-white py-4 rounded-2xl font-black hover:bg-brand-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-100"
                   >
                     Continue <ChevronRight size={20} />
                   </button>
@@ -352,7 +352,7 @@ const Register = () => {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Create Secure Password"
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium"
                       required
                     />
                   </div>
@@ -365,16 +365,16 @@ const Register = () => {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Confirm Password"
-                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none font-medium"
+                      className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-brand-500 transition-all outline-none font-medium"
                       required
                     />
                   </div>
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex gap-3">
-                  <CheckCircle2 className="text-blue-600 shrink-0" size={20} />
-                  <p className="text-xs text-blue-800 font-medium leading-relaxed">
-                    By creating an account, you agree to the Atlas Health College terms of service and student code of conduct.
+                <div className="bg-brand-50 p-4 rounded-2xl border border-brand-100 flex gap-3">
+                  <CheckCircle2 className="text-brand-600 shrink-0" size={20} />
+                  <p className="text-xs text-brand-700 font-medium leading-relaxed">
+                    By creating an account, you agree to the New Generation University College terms of service and student code of conduct.
                   </p>
                 </div>
 
@@ -389,7 +389,7 @@ const Register = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-[2] bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50"
+                    className="flex-[2] bg-brand-600 text-white py-4 rounded-2xl font-black hover:bg-brand-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50"
                   >
                     {loading ? (
                       <span className="flex items-center gap-2">
@@ -407,7 +407,7 @@ const Register = () => {
 
           <p className="text-center text-gray-500 mt-8 text-sm font-medium">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:underline font-bold">
+            <Link to="/login" className="text-brand-600 hover:underline font-bold">
               Sign in here
             </Link>
           </p>

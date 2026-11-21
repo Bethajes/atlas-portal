@@ -74,9 +74,9 @@ const Layout = ({ children }) => {
                     <XMarkIcon className="h-6 w-6 text-white" aria-hidden="true" />
                   </button>
                 </div>
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-blue-600 px-6 pb-4">
+                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-brand-600 px-6 pb-4">
                   <div className="flex h-16 shrink-0 items-center">
-                    <h1 className="text-white text-xl font-bold">Atlas Portal</h1>
+                    <h1 className="text-white text-xl font-bold">NGUC Portal</h1>
                   </div>
                   <nav className="flex flex-1 flex-col">
                     <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -89,7 +89,7 @@ const Layout = ({ children }) => {
                                 className={classNames(
                                   location.pathname === item.href
                                     ? 'bg-blue-700 text-white'
-                                    : 'text-blue-100 hover:text-white hover:bg-blue-700',
+                                    : 'text-blue-100 hover:text-white hover:bg-brand-700',
                                   'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                                 )}
                               >
@@ -111,7 +111,7 @@ const Layout = ({ children }) => {
                       <li className="mt-auto">
                         <button
                           onClick={handleLogout}
-                          className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-blue-100 hover:bg-blue-700 hover:text-white w-full"
+                          className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-blue-100 hover:bg-brand-700 hover:text-white w-full"
                         >
                           <ArrowRightOnRectangleIcon
                             className="h-6 w-6 shrink-0 text-blue-200 group-hover:text-white"
@@ -131,9 +131,9 @@ const Layout = ({ children }) => {
 
       {/* Static sidebar for desktop */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-blue-600 px-6 pb-4">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-brand-600 px-6 pb-4">
           <div className="flex h-16 shrink-0 items-center">
-            <h1 className="text-white text-xl font-bold">Atlas Health College</h1>
+            <h1 className="text-white text-xl font-bold">New Generation University College</h1>
           </div>
           <nav className="flex flex-1 flex-col">
             <ul role="list" className="flex flex-1 flex-col gap-y-7">
@@ -146,7 +146,7 @@ const Layout = ({ children }) => {
                         className={classNames(
                           location.pathname === item.href
                             ? 'bg-blue-700 text-white'
-                            : 'text-blue-100 hover:text-white hover:bg-blue-700',
+                            : 'text-blue-100 hover:text-white hover:bg-brand-700',
                           'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
                         )}
                       >
@@ -168,7 +168,7 @@ const Layout = ({ children }) => {
               <li className="mt-auto">
                 <button
                   onClick={handleLogout}
-                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-blue-100 hover:bg-blue-700 hover:text-white w-full"
+                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-blue-100 hover:bg-brand-700 hover:text-white w-full"
                 >
                   <ArrowRightOnRectangleIcon
                     className="h-6 w-6 shrink-0 text-blue-200 group-hover:text-white"
@@ -204,7 +204,7 @@ const Layout = ({ children }) => {
               <Menu as="div" className="relative">
                 <Menu.Button className="-m-1.5 flex items-center p-1.5">
                   <span className="sr-only">Open user menu</span>
-                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <div className="h-8 w-8 rounded-full bg-brand-600 flex items-center justify-center">
                     <span className="text-white font-semibold">
                       {user?.name?.charAt(0) || 'S'}
                     </span>

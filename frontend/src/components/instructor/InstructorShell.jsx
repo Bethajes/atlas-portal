@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Menu, PanelLeftClose, Search, X } from 'lucide-react';
 import IconButton from './ui/IconButton';
+import { BrandLogo } from '../BrandLogo';
+import { BRAND } from '../../config/brand';
 
 function useClickOutside(ref, onOutside) {
   useEffect(() => {
@@ -15,7 +17,7 @@ function useClickOutside(ref, onOutside) {
 }
 
 export default function InstructorShell({
-  brand = { name: 'Atlas', subtitle: 'Instructor' },
+  brand = { name: BRAND.shortName, subtitle: 'Instructor Portal' },
   user,
   navItems,
   activeId,
@@ -51,9 +53,7 @@ export default function InstructorShell({
           onClick={() => onNavigate?.('dashboard')}
           className="flex min-w-0 items-center gap-3 text-left"
         >
-          <div className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-sky-600 to-teal-500 text-sm font-extrabold text-white shadow-md shadow-sky-200">
-            A
-          </div>
+          <BrandLogo showName={!collapsed} logoClassName="h-10 w-10" subtitle={brand.subtitle} />
           {!collapsed && (
             <div className="min-w-0">
               <div className="truncate text-sm font-semibold text-slate-900">{brand.name}</div>
@@ -95,8 +95,8 @@ export default function InstructorShell({
                     className={[
                       'group flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium outline-none transition',
                       active
-                        ? 'bg-slate-900 text-white shadow-sm shadow-slate-300/40'
-                        : 'text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-sky-500/60',
+                        ? 'bg-brand-600 text-white shadow-sm shadow-brand-200/50'
+                        : 'text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-brand-500/40',
                       collapsed ? 'justify-center px-2' : '',
                     ].join(' ')}
                     aria-current={active ? 'page' : undefined}
@@ -182,7 +182,7 @@ export default function InstructorShell({
                     <button
                       type="button"
                       onClick={() => onSearchClear?.()}
-                      className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60"
+                      className="rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
                       aria-label="Clear search"
                     >
                       <X className="h-4 w-4" />

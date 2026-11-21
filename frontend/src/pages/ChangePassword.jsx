@@ -56,7 +56,7 @@ export default function ChangePassword() {
           </div>
           <h2 className="text-2xl font-black text-gray-900 mb-2">Password Changed!</h2>
           <p className="text-gray-500 mb-8 font-medium">Your password has been updated successfully. You will be redirected to the login page shortly.</p>
-          <div className="animate-pulse text-blue-600 font-bold text-sm">Redirecting...</div>
+          <div className="animate-pulse text-brand-600 font-bold text-sm">Redirecting...</div>
         </div>
       </div>
     );
@@ -65,7 +65,7 @@ export default function ChangePassword() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl overflow-hidden animate-in fade-in duration-500">
-        <div className="bg-blue-600 p-10 text-white">
+        <div className="bg-brand-600 p-10 text-white">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-md">
               <ShieldCheck className="w-8 h-8" />
@@ -93,7 +93,7 @@ export default function ChangePassword() {
                   required
                   value={formData.currentPassword}
                   onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-50 focus:bg-white focus:border-blue-200 outline-none transition-all font-bold text-gray-900"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-50 focus:bg-white focus:border-brand-200 outline-none transition-all font-bold text-gray-900"
                   placeholder="Enter temporary password"
                 />
               </div>
@@ -108,7 +108,7 @@ export default function ChangePassword() {
                   required
                   value={formData.newPassword}
                   onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-50 focus:bg-white focus:border-blue-200 outline-none transition-all font-bold text-gray-900"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-50 focus:bg-white focus:border-brand-200 outline-none transition-all font-bold text-gray-900"
                   placeholder="At least 6 characters"
                 />
               </div>
@@ -123,7 +123,7 @@ export default function ChangePassword() {
                   required
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-50 focus:bg-white focus:border-blue-200 outline-none transition-all font-bold text-gray-900"
+                  className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:ring-4 focus:ring-blue-50 focus:bg-white focus:border-brand-200 outline-none transition-all font-bold text-gray-900"
                   placeholder="Repeat new password"
                 />
               </div>
@@ -133,7 +133,7 @@ export default function ChangePassword() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition shadow-xl shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50 group"
+            className="w-full bg-brand-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-brand-700 transition shadow-xl shadow-blue-100 flex items-center justify-center gap-2 disabled:opacity-50 group"
           >
             {loading ? 'Updating...' : (
               <>

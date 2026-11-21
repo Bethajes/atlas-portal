@@ -28,6 +28,7 @@ model AcademicSemester {
   grade                Grade[]
   invoice              Invoice[]
   semesterRegistration SemesterRegistration[]
+  sections             Section[]              // NEW: Sections in this semester
   student              Student[]
 
   @@unique([type, year])
@@ -144,6 +145,7 @@ model Department {
   instructors Instructor[] @relation("DepartmentInstructors")
   programs    Program[]
   students    Student[]
+  sections    Section[]    // NEW: Sections offered by this department
 }
 
 model Enrollment {
@@ -485,32 +487,59 @@ model AuditLog {
 
 model Section {
   id           String              @id @default(uuid())
-  name         String
+  name         String              // Section identifier (e.g., "A1")
+  sectionCode  String              @unique // Auto-generated (e.g., "BUS-101-A1")
   courseId     String
   instructorId String?
   semesterId   String?
+  departmentId String?             // NEW: For filtering and optimization
   maxStudents  Int                 @default(40)
+  roomNumber   String?             // NEW: Physical/virtual room
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
+
   course       Course              @relation(fields: [courseId], references: [id])
   instructor   Instructor?         @relation(fields: [instructorId], references: [id])
+  semester     AcademicSemester?   @relation(fields: [semesterId], references: [id])
+  department   Department?         @relation(fields: [departmentId], references: [id])
+
+  schedules    SectionSchedule[]   // NEW: Multiple meeting times
   enrollments  SectionEnrollment[]
 
   @@unique([courseId, name, semesterId])
+  @@index([semesterId, departmentId])
+  @@index([instructorId, semesterId])
+}
+
+model SectionSchedule {
+  id         String   @id @default(uuid())
+  sectionId  String
+  dayOfWeek  Int      // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime  String   // Format: "HH:MM" (e.g., "09:00")
+  endTime    String   // Format: "HH:MM" (e.g., "10:30")
+  createdAt  DateTime @default(now())
+
+  section    Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId])
+  @@index([dayOfWeek, startTime, endTime])
 }
 
 model SectionEnrollment {
-  id          String           @id @default(uuid())
-  studentId   String
-  sectionId   String
-  enrolledAt  DateTime         @default(now())
-  grade       Float?
-  letterGrade String?
-  status      EnrollmentStatus @default(ENROLLED)
-  section     Section          @relation(fields: [sectionId], references: [id])
-  student     Student          @relation(fields: [studentId], references: [id])
+  id             String           @id @default(uuid())
+  studentId      String
+  sectionId      String
+  enrolledAt     DateTime         @default(now())
+  grade          Float?
+  letterGrade    String?
+  status         EnrollmentStatus @default(ENROLLED)
+  attendanceRate Float?           // NEW: Percentage (0-100)
+
+  section        Section          @relation(fields: [sectionId], references: [id])
+  student        Student          @relation(fields: [studentId], references: [id])
 
   @@unique([studentId, sectionId])
+  @@index([sectionId, status])
 }
 
 model StudentPayment {

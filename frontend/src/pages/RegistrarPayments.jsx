@@ -108,7 +108,7 @@ const RegistrarPayments = () => {
   if (loading && payments.length === 0 && unpaidStudents.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -120,12 +120,12 @@ const RegistrarPayments = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/dashboard/registrar')}>
+            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-brand-600 transition" onClick={() => navigate('/dashboard/registrar')}>
               <ChevronLeft className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Registrar Dashboard</span>
             </div>
             <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
-              <CreditCard className="w-8 h-8 text-blue-600" />
+              <CreditCard className="w-8 h-8 text-brand-600" />
               Payment Verifications
             </h1>
           </div>
@@ -151,7 +151,7 @@ const RegistrarPayments = () => {
                   }}
                   className={`px-4 py-2 rounded-lg text-[10px] font-black transition-all ${
                     filterStatus === status 
-                      ? 'bg-blue-600 text-white shadow-md' 
+                      ? 'bg-brand-600 text-white shadow-md' 
                       : 'text-gray-500 hover:bg-gray-50'
                   }`}
                 >
@@ -187,7 +187,7 @@ const RegistrarPayments = () => {
                     key={student.id}
                     onClick={() => setSelectedPayment({ ...student, isUnpaidStudent: true })}
                     className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
-                      selectedPayment?.id === student.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
+                      selectedPayment?.id === student.id ? 'border-brand-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
                     }`}
                   >
                     <div className="flex justify-between items-start mb-3">
@@ -198,7 +198,7 @@ const RegistrarPayments = () => {
                         {student.program?.code}
                       </span>
                     </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{student.user?.name}</h3>
+                    <h3 className="font-bold text-gray-900 group-hover:text-brand-600 transition">{student.user?.name}</h3>
                     <div className="flex items-center justify-between mt-4 border-t border-gray-50 pt-3">
                       <span className="text-sm font-black text-gray-900">{student.studentId}</span>
                       <span className="text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-red-50 text-red-600">
@@ -220,18 +220,18 @@ const RegistrarPayments = () => {
                     key={payment.id}
                     onClick={() => setSelectedPayment(payment)}
                     className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
-                      selectedPayment?.id === payment.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
+                      selectedPayment?.id === payment.id ? 'border-brand-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
                     }`}
                   >
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">
+                      <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest bg-brand-50 px-2 py-1 rounded">
                         {payment.referenceNumber}
                       </span>
                       <span className="text-[10px] text-gray-400 font-bold">
                         {new Date(payment.createdAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{payment.student?.user?.name}</h3>
+                    <h3 className="font-bold text-gray-900 group-hover:text-brand-600 transition">{payment.student?.user?.name}</h3>
                     <div className="flex items-center justify-between mt-4 border-t border-gray-50 pt-3">
                       <span className="text-sm font-black text-gray-900">{payment.amount.toLocaleString()} ETB</span>
                       <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${
@@ -276,7 +276,7 @@ const RegistrarPayments = () => {
                         <button 
                           onClick={() => handleVerify(selectedPayment.id, 'APPROVED')}
                           disabled={processing}
-                          className="bg-white text-blue-700 hover:bg-blue-50 px-6 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 shadow-lg"
+                          className="bg-white text-brand-700 hover:bg-brand-50 px-6 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 shadow-lg"
                         >
                           <Check className="w-4 h-4" /> Verify Payment
                         </button>
@@ -325,7 +325,7 @@ const RegistrarPayments = () => {
                             <>
                               <div className="flex justify-between items-center">
                                 <span className="text-sm text-gray-500 font-medium">Amount Paid</span>
-                                <span className="text-xl font-black text-blue-600">{selectedPayment.amount.toLocaleString()} ETB</span>
+                                <span className="text-xl font-black text-brand-600">{selectedPayment.amount.toLocaleString()} ETB</span>
                               </div>
                               <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-500">Method</span>

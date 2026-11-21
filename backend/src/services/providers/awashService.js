@@ -19,9 +19,9 @@ class AwashService {
       const payload = {
         amount: paymentData.amount,
         phone: paymentData.phoneNumber,
-        msg: `Payment for Atlas Health College - ${paymentData.reference}`,
+        msg: `Payment for New Generation University College - ${paymentData.reference}`,
         reference: paymentData.reference,
-        beneficiary_name: 'Atlas Health College',
+        beneficiary_name: 'New Generation University College',
       };
 
       const response = await axios.post(this.baseUrl, payload, {

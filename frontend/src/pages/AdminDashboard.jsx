@@ -23,7 +23,9 @@ import Breadcrumb from '../components/admin/Breadcrumb';
 import Pagination, { paginatedItems } from '../components/admin/Pagination';
 import BulkToolbar from '../components/admin/BulkToolbar';
 import { exportStudentsCsv, exportProgramsCsv } from '../utils/exportCsv';
+import { BrandLogo } from '../components/BrandLogo';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import SectionManagement from '../components/admin/section-management/SectionManagement';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -32,6 +34,7 @@ const TAB_LABELS = {
   students:      'Students',
   instructors:   'Faculty',
   courses:       'Courses',
+  sections:      'Sections',
   departments:   'Departments',
   programs:      'Programs',
   semesters:     'Semesters',
@@ -45,6 +48,7 @@ const TAB_ICONS = {
   students:      Users,
   instructors:   Briefcase,
   courses:       BookOpen,
+  sections:      GraduationCap,
   departments:   Building2,
   programs:      GraduationCap,
   semesters:     Calendar,
@@ -54,7 +58,7 @@ const TAB_ICONS = {
 };
 
 const SUPER_ADMIN_TABS = [
-  'overview','students','instructors','courses','departments',
+  'overview','students','instructors','courses','sections','departments',
   'programs','semesters','notifications','analytics','audit',
 ];
 const STAFF_TABS = SUPER_ADMIN_TABS.filter((t) => t !== 'audit');
@@ -103,7 +107,7 @@ function RolePill({ role }) {
   const map = {
     SUPER_ADMIN:     { label: 'Super Admin',     cls: 'bg-indigo-100 text-indigo-700' },
     REGISTRAR_ADMIN: { label: 'Registrar',       cls: 'bg-amber-100 text-amber-700' },
-    STAFF:           { label: 'Staff',            cls: 'bg-teal-100 text-teal-700' },
+    STAFF:           { label: 'Staff',            cls: 'bg-teal-100 text-brand-700' },
   };
   const { label, cls } = map[role] || { label: role || 'Admin', cls: 'bg-gray-100 text-gray-600' };
   return (
@@ -644,11 +648,11 @@ export default function AdminDashboard() {
     return (
       <div className={`flex flex-col items-center justify-center min-h-screen gap-4 ${dark ? 'bg-slate-950' : 'bg-slate-50'}`}>
         <div className="flex items-center gap-3">
-          <Heart className="w-8 h-8 text-teal-500 animate-pulse" />
-          <span className={`text-xl font-bold tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>Atlas Medical College</span>
+          <BrandLogo showName={false} logoClassName="w-10 h-10" />
+          <span className={`text-xl font-bold tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>New Generation University College</span>
         </div>
         <div className={`w-48 h-1 rounded-full overflow-hidden mt-2 ${dark ? 'bg-slate-800' : 'bg-slate-200'}`}>
-          <div className="h-full bg-teal-500 rounded-full animate-[loading_1.4s_ease-in-out_infinite]" style={{ width: '60%' }} />
+          <div className="h-full bg-brand-600 rounded-full animate-[loading_1.4s_ease-in-out_infinite]" style={{ width: '60%' }} />
         </div>
         <p className={`text-sm ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Loading system data…</p>
         <style>{`
@@ -672,21 +676,21 @@ export default function AdminDashboard() {
         className={`
           w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150
           ${active
-            ? 'bg-teal-500/15 text-teal-600 shadow-inner ring-1 ring-teal-500/30'
+            ? 'bg-brand-500/15 text-brand-700 dark:text-brand-300 shadow-inner ring-1 ring-brand-500/30'
             : dark
               ? 'text-slate-400 hover:bg-white/5 hover:text-white'
               : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900'}
         `}
       >
-        <IconComponent className={`w-5 h-5 shrink-0 ${active ? 'text-teal-500' : ''}`} />
+        <IconComponent className={`w-5 h-5 shrink-0 ${active ? 'text-brand-600 dark:text-brand-400' : ''}`} />
         {!sidebarCollapsed && <span className="truncate">{label}</span>}
         {!sidebarCollapsed && badge > 0 && (
-          <span className="ml-auto bg-teal-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+          <span className="ml-auto bg-brand-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
             {badge}
           </span>
         )}
         {sidebarCollapsed && badge > 0 && (
-          <span className="absolute right-1 top-1 w-2 h-2 bg-teal-500 rounded-full" />
+          <span className="absolute right-1 top-1 w-2 h-2 bg-brand-500 rounded-full" />
         )}
       </button>
     );
@@ -697,12 +701,10 @@ export default function AdminDashboard() {
       {/* Logo */}
       <div className={`p-5 border-b flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} ${dark ? 'border-white/10' : 'border-slate-200'}`}>
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 bg-teal-500 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/30">
-            <Stethoscope className="w-5 h-5 text-white" />
-          </div>
+          <BrandLogo showName={!sidebarCollapsed} logoClassName="h-9 w-9" nameClassName="font-bold text-sm leading-tight" subtitleClassName="text-[10px] uppercase tracking-widest" subtitle="Admin Portal" />
           {!sidebarCollapsed && (
             <div className="min-w-0">
-              <h1 className={`font-bold text-sm leading-tight truncate ${dark ? 'text-white' : 'text-slate-900'}`}>Atlas Medical</h1>
+              <h1 className={`font-bold text-sm leading-tight truncate ${dark ? 'text-white' : 'text-slate-900'}`}>NGUC</h1>
               <p className={`text-[10px] uppercase tracking-widest ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Admin Portal</p>
             </div>
           )}
@@ -812,7 +814,7 @@ export default function AdminDashboard() {
 
           {/* Search */}
           <div className="relative flex-1 min-w-0 max-w-lg">
-            <div className={`flex items-center border px-3 py-2 rounded-xl gap-2 focus-within:ring-2 focus-within:ring-teal-500/50 transition ${dark ? 'bg-slate-800 border-white/10' : 'bg-slate-100 border-slate-200'}`}>
+            <div className={`flex items-center border px-3 py-2 rounded-xl gap-2 focus-within:ring-2 focus-within:ring-brand-500/50 transition ${dark ? 'bg-slate-800 border-white/10' : 'bg-slate-100 border-slate-200'}`}>
               <Search className={`w-4 h-4 shrink-0 ${dark ? 'text-slate-500' : 'text-slate-400'}`} />
               <input
                 type="text"
@@ -841,7 +843,7 @@ export default function AdminDashboard() {
                 <p className={`text-[9px] font-black uppercase tracking-widest mb-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Global results</p>
                 {(['students', 'programs', 'departments']).map((g) => (
                   <div key={g} className="mb-3">
-                    <p className="text-[10px] font-bold text-teal-500 uppercase tracking-wide mb-1 px-1">{g}</p>
+                    <p className="text-[10px] font-bold text-brand-500 uppercase tracking-wide mb-1 px-1">{g}</p>
                     {globalGroups[g].length === 0
                       ? <p className={`text-xs px-2 ${dark ? 'text-slate-600' : 'text-slate-400'}`}>No matches</p>
                       : globalGroups[g].map((row) => (
@@ -881,12 +883,12 @@ export default function AdminDashboard() {
                 aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-teal-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
                   {stats.unreadNotifications}
                 </span>
               </button>
             )}
-            <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-teal-500/20">
+            <div className="w-8 h-8 bg-brand-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-teal-500/20">
               {user?.name?.charAt(0)?.toUpperCase()}
             </div>
           </div>
@@ -902,7 +904,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
                 <div>
                   <h2 className="text-2xl font-black text-white tracking-tight">Admin Dashboard</h2>
-                  <p className="text-slate-400 text-sm mt-1">Atlas Health College Portal · Payments & student activity</p>
+                  <p className="text-slate-400 text-sm mt-1">New Generation University College · Payments & student activity</p>
                 </div>
               </div>
 
@@ -913,7 +915,7 @@ export default function AdminDashboard() {
                   value={stats.totalStudents}
                   icon={Users}
                   color="text-blue-400"
-                  bg="bg-blue-500/10"
+                  bg="bg-brand-500/10"
                   loading={loading}
                 />
                 <StatCard
@@ -943,7 +945,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 w-full lg:w-auto">
                       <div className="sm:col-span-2">
-                        <div className="flex items-center border px-3 py-2 rounded-xl gap-2 focus-within:ring-2 focus-within:ring-teal-500/50 transition bg-slate-800 border-white/10">
+                        <div className="flex items-center border px-3 py-2 rounded-xl gap-2 focus-within:ring-2 focus-within:ring-brand-500/50 transition bg-slate-800 border-white/10">
                           <Search className="w-4 h-4 shrink-0 text-slate-500" />
                           <input
                             type="text"
@@ -967,7 +969,7 @@ export default function AdminDashboard() {
                       <select
                         value={paymentStatusFilter}
                         onChange={(e) => setPaymentStatusFilter(e.target.value)}
-                        className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                        className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                         aria-label="Filter payments by status"
                       >
                         <option value="">All statuses</option>
@@ -979,14 +981,14 @@ export default function AdminDashboard() {
                           type="date"
                           value={paymentFromDate}
                           onChange={(e) => setPaymentFromDate(e.target.value)}
-                          className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                          className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                           aria-label="From date"
                         />
                         <input
                           type="date"
                           value={paymentToDate}
                           onChange={(e) => setPaymentToDate(e.target.value)}
-                          className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                          className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                           aria-label="To date"
                         />
                       </div>
@@ -1112,7 +1114,7 @@ export default function AdminDashboard() {
                     <select
                       value={programTypeFilter}
                       onChange={(e) => setProgramTypeFilter(e.target.value)}
-                      className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+                      className="bg-slate-800 border border-white/10 text-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
                     >
                       <option value="">All types</option>
                       <option value="DECLARED">Declared</option>
@@ -1187,7 +1189,7 @@ export default function AdminDashboard() {
                               aria-label="Select all on page"
                               checked={pagedRows.length > 0 && pagedRows.every((r) => selectedIds.has(r.id))}
                               onChange={selectAllPage}
-                              className="rounded border-slate-600 bg-slate-700 text-teal-500 focus:ring-teal-500"
+                              className="rounded border-slate-600 bg-slate-700 text-brand-500 focus:ring-brand-500"
                             />
                           )}
                         </th>
@@ -1209,7 +1211,7 @@ export default function AdminDashboard() {
                                 type="checkbox"
                                 checked={selectedIds.has(s.id)}
                                 onChange={() => toggleSelect(s.id)}
-                                className="rounded border-slate-600 bg-slate-700 text-teal-500 focus:ring-teal-500"
+                                className="rounded border-slate-600 bg-slate-700 text-brand-500 focus:ring-brand-500"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -1256,7 +1258,7 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-4 py-3 text-xs text-slate-400">{c.department?.name}</td>
                             <td className="px-4 py-3 text-center">
-                              <span className="text-xs font-bold text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-full">
+                              <span className="text-xs font-bold text-teal-400 bg-brand-500/10 px-2 py-0.5 rounded-full">
                                 {c.credits} cr
                               </span>
                             </td>
@@ -1323,7 +1325,7 @@ export default function AdminDashboard() {
                                   type="checkbox"
                                   checked={selectedIds.has(p.id)}
                                   onChange={() => toggleSelect(p.id)}
-                                  className="rounded border-slate-600 bg-slate-700 text-teal-500 focus:ring-teal-500"
+                                  className="rounded border-slate-600 bg-slate-700 text-brand-500 focus:ring-brand-500"
                                 />
                               )}
                             </td>
@@ -1432,7 +1434,7 @@ export default function AdminDashboard() {
                     {notifications.map((notif) => (
                       <div
                         key={notif.id}
-                        className={`p-5 flex gap-4 transition ${!notif.isRead ? 'bg-teal-500/5 hover:bg-teal-500/10' : 'hover:bg-white/[0.02]'}`}
+                        className={`p-5 flex gap-4 transition ${!notif.isRead ? 'bg-brand-500/5 hover:bg-brand-500/10' : 'hover:bg-white/[0.02]'}`}
                         onMouseEnter={() => !notif.isRead && markNotificationRead(notif.id)}
                       >
                         <div className={`mt-0.5 w-2 h-2 rounded-full shrink-0 ${!notif.isRead ? 'bg-teal-400' : 'bg-slate-700'}`} />
@@ -1447,6 +1449,9 @@ export default function AdminDashboard() {
               </div>
             </section>
           )}
+
+          {/* ── SECTIONS ── */}
+          {activeTab === 'sections' && <SectionManagement />}
 
           {/* ── ANALYTICS ── */}
           {activeTab === 'analytics' && <AnalyticsDashboard />}
@@ -1505,7 +1510,7 @@ export default function AdminDashboard() {
         <select
           value={assignProgramId}
           onChange={(e) => setAssignProgramId(e.target.value)}
-          className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 mb-4 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+          className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 mb-4 text-sm focus:ring-2 focus:ring-brand-500 outline-none"
         >
           <option value="">Select program…</option>
           {programs.map((p) => <option key={p.id} value={p.id}>{p.code} — {p.name}</option>)}
@@ -1544,7 +1549,7 @@ export default function AdminDashboard() {
             <Input label="Max Students" name="maxStudents" type="number" value={form.maxStudents || ''} onChange={(e) => setForm({ ...form, maxStudents: e.target.value })} />
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Department</label>
-              <select required value={form.departmentId || ''} onChange={(e) => setForm({ ...form, departmentId: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+              <select required value={form.departmentId || ''} onChange={(e) => setForm({ ...form, departmentId: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
                 <option value="">Select department…</option>
                 {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
@@ -1566,7 +1571,7 @@ export default function AdminDashboard() {
               <textarea
                 value={form.description || ''}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none resize-none"
+                className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none resize-none"
                 rows={3}
                 placeholder="Brief department overview…"
               />
@@ -1585,14 +1590,14 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Type</label>
-                <select value={form.type || 'DECLARED'} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                <select value={form.type || 'DECLARED'} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
                   <option value="DECLARED">Declared</option>
                   <option value="UNDECLARED">Undeclared</option>
                 </select>
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Degree Level</label>
-                <select value={form.degreeLevel || 'BACHELOR'} onChange={(e) => setForm({ ...form, degreeLevel: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                <select value={form.degreeLevel || 'BACHELOR'} onChange={(e) => setForm({ ...form, degreeLevel: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
                   <option value="BACHELOR">Bachelor</option>
                   <option value="MASTER">Master</option>
                   <option value="DOCTORATE">Doctorate</option>
@@ -1603,7 +1608,7 @@ export default function AdminDashboard() {
             {form.type === 'DECLARED' && (
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Department</label>
-                <select required value={form.departmentId || ''} onChange={(e) => setForm({ ...form, departmentId: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                <select required value={form.departmentId || ''} onChange={(e) => setForm({ ...form, departmentId: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
                   <option value="">Select department…</option>
                   {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
@@ -1626,7 +1631,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Type</label>
-                <select value={form.type || 'FALL'} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+                <select value={form.type || 'FALL'} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
                   <option value="FALL">Fall</option>
                   <option value="SPRING">Spring</option>
                   <option value="SUMMER">Summer</option>
@@ -1662,7 +1667,7 @@ function TrashToggle({ view, onChange }) {
     <div className="flex rounded-xl border border-white/10 overflow-hidden text-xs font-bold">
       <button
         type="button"
-        className={`px-3 py-2 transition ${view === 'active' ? 'bg-teal-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+        className={`px-3 py-2 transition ${view === 'active' ? 'bg-brand-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
         onClick={() => onChange('active')}
       >
         Active

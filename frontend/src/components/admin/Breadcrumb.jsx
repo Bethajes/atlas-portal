@@ -7,23 +7,23 @@ export default function Breadcrumb({ items = [] }) {
   }
 
   return (
-    <nav className="flex items-center space-x-2 text-sm text-gray-600">
+    <nav className="flex items-center space-x-2 text-sm text-slate-500">
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
         
         return (
           <React.Fragment key={index}>
             {index > 0 && (
-              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <ChevronRight className="w-4 h-4 text-slate-400" />
             )}
             {isLast ? (
-              <span className="text-gray-900 font-medium">
+              <span className="text-slate-900 font-medium">
                 {item.label}
               </span>
             ) : (
               <button
                 onClick={item.onClick}
-                className="hover:text-blue-600 transition-colors focus:outline-none focus:underline"
+                className="hover:text-brand-600 transition-colors focus:outline-none focus:underline"
               >
                 {item.label}
               </button>

@@ -35,7 +35,7 @@ function registrationBadge(sem) {
   const now = Date.now();
   const rs = new Date(sem.registrationStart).getTime();
   const re = new Date(sem.registrationEnd).getTime();
-  if (now < rs) return { text: 'Window: upcoming', className: 'bg-blue-50 text-blue-700 border-blue-200' };
+  if (now < rs) return { text: 'Window: upcoming', className: 'bg-brand-50 text-brand-700 border-brand-200' };
   if (now <= re) return { text: 'Window: open', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
   return { text: 'Window: closed', className: 'bg-gray-50 text-gray-600 border-gray-200' };
 }
@@ -278,9 +278,9 @@ const RegistrarDashboard = () => {
       `}>
         <div className="px-5 py-5 border-b border-slate-700/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">A</div>
+            <div className="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">A</div>
             <div>
-              <p className="text-white font-bold text-sm leading-tight">Atlas Portal</p>
+              <p className="text-white font-bold text-sm leading-tight">NGUC Portal</p>
               <p className="text-slate-400 text-[11px]">Registrar</p>
             </div>
           </div>
@@ -299,7 +299,7 @@ const RegistrarDashboard = () => {
               setIsMobileMenuOpen(false);
             }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                activeTab === id ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                activeTab === id ? 'bg-brand-600 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
               }`}>
               <Icon className="w-4 h-4 shrink-0" />
               <span className="flex-1 text-left">{label}</span>
@@ -327,7 +327,7 @@ const RegistrarDashboard = () => {
         </nav>
         <div className="px-4 py-4 border-t border-slate-700/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">{user?.name?.charAt(0)}</div>
+            <div className="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white font-bold text-xs">{user?.name?.charAt(0)}</div>
             <div className="min-w-0">
               <p className="text-white text-xs font-semibold truncate">{user?.name}</p>
               <p className="text-slate-400 text-[10px]">Registrar</p>
@@ -366,7 +366,7 @@ const RegistrarDashboard = () => {
               <Bell className="w-4 h-4 text-gray-500" />
               {unread > 0 && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center font-bold">{unread}</span>}
             </div>
-            <div className="w-7 h-7 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-xs">{user?.name?.charAt(0)}</div>
+            <div className="w-7 h-7 rounded-full bg-brand-700 flex items-center justify-center text-white font-bold text-xs">{user?.name?.charAt(0)}</div>
             <button 
               onClick={logout}
               className="flex items-center gap-2 text-gray-500 hover:text-red-600 transition text-xs font-medium border-l border-gray-200 pl-3"
@@ -386,7 +386,7 @@ const RegistrarDashboard = () => {
                 <div>
                   <h1 className="text-xl font-bold text-gray-900">Registrar Dashboard</h1>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    Active Semester: <span className="font-semibold text-blue-700">{stats.activeSemester || 'None'}</span>
+                    Active Semester: <span className="font-semibold text-brand-700">{stats.activeSemester || 'None'}</span>
                     {stats.registrationOpen
                       ? <span className="ml-2 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">REGISTRATION OPEN</span>
                       : <span className="ml-2 text-[10px] font-bold text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full">REGISTRATION CLOSED</span>
@@ -400,7 +400,7 @@ const RegistrarDashboard = () => {
                       </button>
                     : null
                   }
-                  <button onClick={() => setActiveTab('registrations')} className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition">
+                  <button onClick={() => setActiveTab('registrations')} className="flex items-center gap-2 bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition">
                     <CheckCircle className="w-4 h-4" /> Review Requests ({stats.pendingRegistrations || 0})
                   </button>
                 </div>
@@ -409,7 +409,7 @@ const RegistrarDashboard = () => {
               {/* Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 {[
-                  { label: 'Total Students',        value: stats.totalStudents || 0,        Icon: Users,         color: 'text-blue-700',    bg: 'bg-blue-50' },
+                  { label: 'Total Students',        value: stats.totalStudents || 0,        Icon: Users,         color: 'text-brand-700',    bg: 'bg-brand-50' },
                   { label: 'Pending Registrations', value: stats.pendingRegistrations || 0, Icon: Clock,         color: 'text-amber-700',   bg: 'bg-amber-50' },
                   { label: 'New Applications',      value: stats.pendingApplications || 0,  Icon: GraduationCap, color: 'text-indigo-700',  bg: 'bg-indigo-50' },
                   { label: 'Unpaid Students',       value: stats.unpaidStudentsCount || 0,  Icon: AlertTriangle, color: 'text-red-700',     bg: 'bg-red-50', link: '/registrar/payments?status=UNPAID' },
@@ -421,7 +421,7 @@ const RegistrarDashboard = () => {
                     <div className="flex items-center justify-between mt-0.5">
                       <p className="text-2xl font-bold text-gray-900">{value}</p>
                       {link && (
-                        <Link to={link} className="text-blue-600 hover:text-blue-800">
+                        <Link to={link} className="text-brand-600 hover:text-brand-700">
                           <ArrowUpRight className="w-4 h-4" />
                         </Link>
                       )}
@@ -436,7 +436,7 @@ const RegistrarDashboard = () => {
                   <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-amber-600" /> Pending Registration Requests
                   </h2>
-                  <button onClick={() => setActiveTab('registrations')} className="text-xs text-blue-700 font-semibold hover:underline">View all</button>
+                  <button onClick={() => setActiveTab('registrations')} className="text-xs text-brand-700 font-semibold hover:underline">View all</button>
                 </div>
                 {pendingRegs.length === 0 ? (
                   <div className="p-10 text-center text-sm text-gray-400">No pending registrations.</div>
@@ -445,7 +445,7 @@ const RegistrarDashboard = () => {
                     {pendingRegs.slice(0, 5).map(reg => (
                       <div key={reg.id} className="px-5 py-3.5 flex items-center justify-between hover:bg-gray-50/50 transition">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-700 font-bold text-xs shrink-0">
                             {reg.student?.user?.name?.charAt(0)}
                           </div>
                           <div>
@@ -497,7 +497,7 @@ const RegistrarDashboard = () => {
                         <tr key={reg.id} className="hover:bg-gray-50/50 transition">
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0">
+                              <div className="w-8 h-8 rounded-lg bg-brand-50 flex items-center justify-center text-brand-700 font-bold text-xs shrink-0">
                                 {reg.student?.user?.name?.charAt(0)}
                               </div>
                               <div>
@@ -590,7 +590,7 @@ const RegistrarDashboard = () => {
                     <label className="text-xs text-gray-600">Add deadline <input type="datetime-local" className="mt-1 w-full border rounded-lg px-3 py-2 text-sm" value={createForm.addDeadline} onChange={(e) => setCreateForm((f) => ({ ...f, addDeadline: e.target.value }))} /></label>
                     <label className="text-xs text-gray-600">Drop deadline <input type="datetime-local" className="mt-1 w-full border rounded-lg px-3 py-2 text-sm" value={createForm.dropDeadline} onChange={(e) => setCreateForm((f) => ({ ...f, dropDeadline: e.target.value }))} /></label>
                   </div>
-                  <button type="button" disabled={semSaving} onClick={submitCreateSemester} className="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 disabled:opacity-50">
+                  <button type="button" disabled={semSaving} onClick={submitCreateSemester} className="bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 disabled:opacity-50">
                     {semSaving ? 'Saving…' : 'Create semester'}
                   </button>
                 </div>
@@ -639,7 +639,7 @@ const RegistrarDashboard = () => {
                       </button>
                       {!sem.isActive && (
                         <button onClick={() => openRegistration(sem.id)} disabled={actionLoading[sem.id]}
-                          className="w-full flex items-center justify-center gap-2 bg-blue-700 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-800 transition disabled:opacity-50">
+                          className="w-full flex items-center justify-center gap-2 bg-brand-700 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-800 transition disabled:opacity-50">
                           {actionLoading[sem.id] ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Unlock className="w-4 h-4" />}
                           Set as active semester
                         </button>
@@ -736,7 +736,7 @@ const RegistrarDashboard = () => {
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
                                   s.status === 'ACTIVE'     ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                   s.status === 'PROBATION'  ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                  s.status === 'GRADUATED'  ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                  s.status === 'GRADUATED'  ? 'bg-brand-50 text-brand-700 border-brand-200' :
                                   s.status === 'SUSPENDED'  ? 'bg-red-50 text-red-700 border-red-200' :
                                   'bg-gray-50 text-gray-500 border-gray-200'
                                 }`}>{s.status}</span>
@@ -780,8 +780,8 @@ const RegistrarDashboard = () => {
                   <div className="divide-y divide-gray-50">
                     {notifications.map(n => (
                       <div key={n.id} onMouseEnter={() => !n.isRead && markRead(n.id)}
-                        className={`px-5 py-4 flex items-start gap-3 transition ${!n.isRead ? 'bg-blue-50/30' : ''}`}>
-                        <div className={`p-2 rounded-lg shrink-0 ${n.type === 'SUCCESS' ? 'bg-emerald-100 text-emerald-600' : n.type === 'ERROR' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
+                        className={`px-5 py-4 flex items-start gap-3 transition ${!n.isRead ? 'bg-brand-50/30' : ''}`}>
+                        <div className={`p-2 rounded-lg shrink-0 ${n.type === 'SUCCESS' ? 'bg-emerald-100 text-emerald-600' : n.type === 'ERROR' ? 'bg-red-100 text-red-600' : 'bg-brand-100 text-brand-600'}`}>
                           <Bell className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -789,7 +789,7 @@ const RegistrarDashboard = () => {
                           <p className="text-xs text-gray-500 mt-0.5">{n.message}</p>
                           <p className="text-[10px] text-gray-400 mt-1">{new Date(n.createdAt).toLocaleString()}</p>
                         </div>
-                        {!n.isRead && <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 shrink-0" />}
+                        {!n.isRead && <div className="w-2 h-2 bg-brand-600 rounded-full mt-1.5 shrink-0" />}
                       </div>
                     ))}
                   </div>
@@ -839,7 +839,7 @@ const RegistrarDashboard = () => {
             </div>
             <div className="flex gap-3 mt-6">
               <button type="button" onClick={() => setEditSem(null)} className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button>
-              <button type="button" disabled={semSaving} onClick={saveSemesterDates} className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-blue-700 text-white hover:bg-blue-800 disabled:opacity-50">
+              <button type="button" disabled={semSaving} onClick={saveSemesterDates} className="flex-1 py-2.5 rounded-lg text-sm font-semibold bg-brand-700 text-white hover:bg-blue-800 disabled:opacity-50">
                 {semSaving ? 'Saving…' : 'Save'}
               </button>
             </div>

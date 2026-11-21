@@ -1,8 +1,8 @@
 import React from 'react';
 
 const VARIANT_CLASS = {
-  primary: 'bg-blue-600 hover:bg-blue-700 text-white',
-  secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
+  primary: 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm shadow-brand-600/20',
+  secondary: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200',
   danger: 'bg-red-500 hover:bg-red-600 text-white',
 };
 
@@ -25,7 +25,7 @@ export default function Button({
   className = '',
 }) {
   const isDisabled = disabled || loading;
-  const base = 'inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500';
+  const base = 'inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-500';
   const variantCls = VARIANT_CLASS[variant] || VARIANT_CLASS.primary;
   const stateCls = isDisabled ? 'opacity-50 cursor-not-allowed' : '';
   return (

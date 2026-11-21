@@ -12,6 +12,10 @@ const {
   getMyStudents,
   getMySections,
   getMyEnrollments,
+  smartAssign,
+  bulkAssignStudents,
+  getSectionSuggestions,
+  validateSection,
 } = require('../controllers/section.controller');
 
 // Student — view their own section enrollments
@@ -33,5 +37,11 @@ router.delete('/:id', authenticateToken, authorizeRoles('ADMIN'), deleteSection)
 
 // Instructor/Admin — assign grades
 router.put('/:sectionId/students/:studentId/grade', authenticateToken, authorizeRoles('INSTRUCTOR', 'ADMIN'), assignGrade);
+
+// Advanced features
+router.post('/:id/smart-assign', authenticateToken, authorizeRoles('ADMIN', 'REGISTRAR'), smartAssign);
+router.post('/bulk/assign', authenticateToken, authorizeRoles('ADMIN', 'REGISTRAR'), bulkAssignStudents);
+router.get('/:id/suggestions', authenticateToken, getSectionSuggestions);
+router.post('/validate', authenticateToken, validateSection);
 
 module.exports = router;

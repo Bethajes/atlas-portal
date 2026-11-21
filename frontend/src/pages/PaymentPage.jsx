@@ -132,7 +132,7 @@ export default function PaymentPage() {
               {[
                 ['1', 'Click "Generate reference number" below'],
                 ['2', 'Open Awash Bank or Telebirr app on your phone'],
-                ['3', 'Select "School / Education Payment" → Atlas Health College'],
+                ['3', 'Select "School / Education Payment" → New Generation University College'],
                 ['4', 'Enter your reference number and complete the payment'],
                 ['5', 'Come back here and click "Verify payment" with your transaction ID'],
               ].map(([num, text]) => (
@@ -145,9 +145,9 @@ export default function PaymentPage() {
               ))}
 
               <div className="pt-2">
-                <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-4">
-                  <p className="text-xs text-blue-600 font-medium mb-1">Demo mode — test transaction IDs</p>
-                  <p className="text-xs text-blue-500 font-mono">AWB-12345, TLB-99999, AWB-54321</p>
+                <div className="bg-brand-50 border border-brand-100 rounded-lg p-3 mb-4">
+                  <p className="text-xs text-brand-600 font-medium mb-1">Demo mode — test transaction IDs</p>
+                  <p className="text-xs text-brand-500 font-mono">AWB-12345, TLB-99999, AWB-54321</p>
                   <p className="text-xs text-blue-400 mt-1">Or any format: AWB-XXXXX or TLB-XXXXX</p>
                 </div>
                 <button

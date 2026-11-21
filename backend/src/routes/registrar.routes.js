@@ -41,9 +41,9 @@ router.use(allowRoles('REGISTRAR', 'ADMIN'));
 // Dashboard
 router.get('/dashboard/stats', getDashboardStats);
 
-// Semester management
-router.put('/semesters/:id/open-registration', openSemesterRegistration);
+// Semester management — static paths before parameterized ones
 router.put('/semesters/close-registration', closeSemesterRegistration);
+router.put('/semesters/:id/open-registration', openSemesterRegistration);
 
 // Fee management
 router.post('/fee-structures', createFeeStructure);
@@ -60,14 +60,14 @@ router.put('/registrations/:id/status', updateRegistrationStatus);
 router.get('/admissions', getApplications);
 router.put('/admissions/:id/process', processApplication);
 
-// Students
+// Students — static paths MUST come before parameterized ones
 router.get('/students', getStudents);
 router.get('/students/unpaid', getUnpaidStudents);
+router.post('/students/bulk-progress', bulkProgressHandler);
 
-// Lifecycle management
+// Lifecycle management (parameterized — must be after static routes above)
 router.post('/students/:studentId/progress', progressStudentHandler);
 router.post('/students/:studentId/graduate', graduateStudentHandler);
 router.get('/students/:studentId/graduation-check', checkGraduationHandler);
-router.post('/students/bulk-progress', bulkProgressHandler);
 
 module.exports = router;

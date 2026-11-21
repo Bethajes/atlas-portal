@@ -13,14 +13,20 @@ const getStudentAnnouncements = async (req, res) => {
     const student = await prisma.student.findUnique({
       where: { userId },
       include: {
-        Enrollment: {
+        enrollment: {
           where: { status: 'ENROLLED' },
           select: { courseId: true },
+        },
+        sectionEnrollments: {
+          where: { status: 'ENROLLED' },
+          select: { section: { select: { courseId: true } } },
         },
       },
     });
 
-    const courseIds = student?.Enrollment.map(e => e.courseId) || [];
+    const legacyCourseIds = student?.enrollment.map((e) => e.courseId) || [];
+    const sectionCourseIds = student?.sectionEnrollments.map((e) => e.section.courseId) || [];
+    const courseIds = Array.from(new Set([...legacyCourseIds, ...sectionCourseIds]));
 
     // Get global announcements and course-specific announcements
     const announcements = await prisma.announcement.findMany({
@@ -31,10 +37,10 @@ const getStudentAnnouncements = async (req, res) => {
         ],
       },
       include: {
-        User: {
+        user: {
           select: { name: true, role: true },
         },
-        Course: {
+        course: {
           select: { code: true, title: true },
         },
       },
@@ -42,10 +48,12 @@ const getStudentAnnouncements = async (req, res) => {
       take: 50,
     });
 
+    const data = announcements.map((a) => ({ ...a, User: a.user, Course: a.course }));
+
     res.status(200).json({
       success: true,
-      count: announcements.length,
-      data: announcements,
+      count: data.length,
+      data,
     });
   } catch (error) {
     console.error('Get announcements error:', error);
@@ -77,14 +85,14 @@ const createAnnouncement = async (req, res) => {
         updatedAt: new Date(),
       },
       include: {
-        User: { select: { name: true } },
-        Course: { select: { code: true, title: true } },
+        user: { select: { name: true } },
+        course: { select: { code: true, title: true } },
       },
     });
 
     res.status(201).json({
       success: true,
-      data: announcement,
+      data: { ...announcement, User: announcement.user, Course: announcement.course },
     });
   } catch (error) {
     console.error('Create announcement error:', error);
@@ -122,14 +130,15 @@ const getInstructorAnnouncements = async (req, res) => {
         ],
       },
       include: {
-        User: { select: { name: true, role: true } },
-        Course: { select: { code: true, title: true } },
+        user: { select: { name: true, role: true } },
+        course: { select: { code: true, title: true } },
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
 
-    return res.status(200).json({ success: true, count: announcements.length, data: announcements });
+    const data = announcements.map((a) => ({ ...a, User: a.user, Course: a.course }));
+    return res.status(200).json({ success: true, count: data.length, data });
   } catch (error) {
     console.error('Get instructor announcements error:', error);
     return res.status(500).json({ success: false, message: 'Server error while fetching announcements' });

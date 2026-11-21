@@ -4,7 +4,7 @@ const STATUS_COLORS = {
   ACTIVE: 'bg-green-100 text-green-800',
   PROBATION: 'bg-amber-100 text-amber-800',
   SUSPENDED: 'bg-red-100 text-red-800',
-  GRADUATED: 'bg-blue-100 text-blue-800',
+  GRADUATED: 'bg-brand-100 text-brand-700',
   DECLARED: 'bg-green-100 text-green-800',
   UNDECLARED: 'bg-amber-100 text-amber-800',
   INSTRUCTOR: 'bg-indigo-100 text-indigo-800',

@@ -16,14 +16,14 @@ const sendPasswordResetEmail = async (to, resetToken, name) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
   
   const mailOptions = {
-    from: `"Atlas Health College" <${process.env.EMAIL_USER}>`,
+    from: `"New Generation University College" <${process.env.EMAIL_USER}>`,
     to: to,
-    subject: 'Password Reset Request - Atlas Portal',
+    subject: 'Password Reset Request - NGUC Portal',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #0066cc;">Password Reset Request</h2>
         <p>Hello ${name},</p>
-        <p>We received a request to reset your Atlas Portal password.</p>
+        <p>We received a request to reset your NGUC Portal password.</p>
         <p>Click the button below to reset your password (valid for 1 hour):</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${resetUrl}" 
@@ -36,7 +36,7 @@ const sendPasswordResetEmail = async (to, resetToken, name) => {
         <p>If you didn't request this, please ignore this email.</p>
         <hr style="border: 1px solid #eee; margin: 30px 0;">
         <p style="color: #666; font-size: 12px;">
-          Atlas Health College Portal<br>
+          New Generation University College Portal<br>
           This link will expire in 1 hour.
         </p>
       </div>
@@ -51,12 +51,12 @@ const sendPasswordResetEmail = async (to, resetToken, name) => {
  */
 const sendWelcomeEmail = async (to, name) => {
   const mailOptions = {
-    from: `"Atlas Health College" <${process.env.EMAIL_USER}>`,
+    from: `"New Generation University College" <${process.env.EMAIL_USER}>`,
     to: to,
-    subject: 'Welcome to Atlas Health College Portal',
+    subject: 'Welcome to New Generation University College Portal',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #0066cc;">Welcome to Atlas Portal!</h2>
+        <h2 style="color: #0066cc;">Welcome to NGUC Portal!</h2>
         <p>Hello ${name},</p>
         <p>Your account has been created successfully.</p>
         <p>You can now access the student portal to:</p>
@@ -75,7 +75,7 @@ const sendWelcomeEmail = async (to, name) => {
         </div>
         <hr style="border: 1px solid #eee; margin: 30px 0;">
         <p style="color: #666; font-size: 12px;">
-          Atlas Health College Portal
+          New Generation University College Portal
         </p>
       </div>
     `,

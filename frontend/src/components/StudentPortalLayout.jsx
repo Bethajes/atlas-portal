@@ -4,7 +4,6 @@ import {
   BookOpen,
   CreditCard,
   FileText,
-  GraduationCap,
   LayoutDashboard,
   Bell,
   LogOut,
@@ -16,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { BrandLogo } from './BrandLogo';
+import { BRAND } from '../config/brand';
 import api from '../api/axios';
 
 const navItems = [
@@ -41,13 +42,13 @@ function NavList({ onNavigate }) {
             key={id}
             to={path}
             onClick={onNavigate}
-            className={`flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-colors ${
               active
-                ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 shadow-sm'
+                ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-200 shadow-sm ring-1 ring-brand-100 dark:ring-brand-800/50'
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700/50 dark:hover:text-slate-100'
             }`}
           >
-            {createElement(icon, { className: 'w-5 h-5 shrink-0' })}
+            {createElement(icon, { className: `w-5 h-5 shrink-0 ${active ? 'text-brand-600 dark:text-brand-300' : ''}` })}
             <span className="truncate">{label}</span>
           </Link>
         );
@@ -126,20 +127,17 @@ export default function StudentPortalLayout({ children, eyebrow, title, subtitle
 
   const sidebarContent = (
     <>
-      <div className="px-6 py-7 border-b border-slate-100 dark:border-slate-700/60">
+      <div className="px-5 py-6 border-b border-slate-100 dark:border-slate-700/60">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm">
-            <GraduationCap className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Student Portal</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user?.name || 'Student'}</p>
+          <BrandLogo showName={false} logoClassName="h-11 w-11" />
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">{BRAND.shortName}</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight truncate">{BRAND.name}</p>
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="portal-badge bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-            {user?.role || 'Student'}
-          </span>
+        <div className="mt-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 px-3 py-2.5">
+          <p className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">{user?.name || 'Student'}</p>
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">Student Portal</p>
         </div>
       </div>
 
@@ -153,19 +151,20 @@ export default function StudentPortalLayout({ children, eyebrow, title, subtitle
         <button
           type="button"
           onClick={signOut}
-          className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700
-                     bg-white dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-red-600 dark:text-red-400
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700
+                     bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400
                      transition hover:bg-red-50 dark:hover:bg-red-900/20"
         >
           <LogOut className="w-4 h-4" />
           Sign out
         </button>
+        <p className="px-1 pt-1 text-[10px] text-slate-400 dark:text-slate-500 leading-snug">{BRAND.provider}</p>
       </div>
     </>
   );
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex">
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-72 shrink-0 flex-col bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700/60 shadow-sm fixed top-0 left-0 h-full z-20">
         {sidebarContent}
@@ -183,8 +182,8 @@ export default function StudentPortalLayout({ children, eyebrow, title, subtitle
           <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white dark:bg-slate-800 shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-semibold">
-                <GraduationCap className="w-5 h-5 text-blue-600" />
-                Menu
+                <BrandLogo showName={false} logoClassName="h-7 w-7" />
+                <span>{BRAND.shortName}</span>
               </div>
               <button
                 type="button"
@@ -233,7 +232,7 @@ export default function StudentPortalLayout({ children, eyebrow, title, subtitle
             </button>
 
             <div className="flex-1 min-w-0">
-              {eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-600 dark:text-blue-400">{eyebrow}</p> : null}
+              {eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600 dark:text-brand-400">{eyebrow}</p> : null}
               <h1 className="text-2xl font-bold text-slate-950 dark:text-slate-50 truncate">{title}</h1>
               {subtitle ? <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 truncate">{subtitle}</p> : null}
             </div>
@@ -281,11 +280,11 @@ export default function StudentPortalLayout({ children, eyebrow, title, subtitle
                               className={`w-full text-left px-4 py-3 transition ${
                                 n.isRead
                                   ? 'hover:bg-slate-50 dark:hover:bg-slate-700/40'
-                                  : 'bg-indigo-50/60 dark:bg-indigo-900/20 hover:bg-indigo-50 dark:hover:bg-indigo-900/25'
+                                  : 'bg-brand-50/60 dark:bg-brand-900/20 hover:bg-brand-50 dark:hover:bg-brand-900/25'
                               }`}
                             >
                               <div className="flex items-start gap-3">
-                                <span className={`mt-1.5 w-2 h-2 rounded-full ${n.isRead ? 'bg-slate-300 dark:bg-slate-600' : 'bg-indigo-600'}`} />
+                                <span className={`mt-1.5 w-2 h-2 rounded-full ${n.isRead ? 'bg-slate-300 dark:bg-slate-600' : 'bg-brand-600'}`} />
                                 <div className="min-w-0">
                                   <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                                     {n.title || 'Notification'}
@@ -314,7 +313,7 @@ export default function StudentPortalLayout({ children, eyebrow, title, subtitle
                       <button
                         type="button"
                         onClick={() => setNotifOpen(false)}
-                        className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 transition"
+                        className="text-xs font-semibold text-brand-700 dark:text-brand-300 hover:text-brand-800 dark:hover:text-brand-200 transition"
                       >
                         Close
                       </button>
@@ -324,7 +323,7 @@ export default function StudentPortalLayout({ children, eyebrow, title, subtitle
               </div>
 
               <div className="hidden sm:flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white text-sm font-bold">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand-600 text-white text-sm font-bold">
                   {(user?.name || 'S').slice(0, 1).toUpperCase()}
                 </div>
                 <div className="min-w-0">

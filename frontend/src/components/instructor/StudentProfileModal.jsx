@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const StatusBadge = ({ status }) => {
   const map = {
-    ENROLLED:  'bg-blue-50 text-blue-600 border-blue-200',
+    ENROLLED:  'bg-brand-50 text-brand-600 border-brand-200',
     COMPLETED: 'bg-emerald-50 text-emerald-600 border-emerald-200',
     FAILED:    'bg-red-50 text-red-600 border-red-200',
     DROPPED:   'bg-gray-50 text-gray-400 border-gray-200',

@@ -76,7 +76,7 @@ const RegistrarAdmissions = () => {
   if (loading && applications.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -88,12 +88,12 @@ const RegistrarAdmissions = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/dashboard/registrar')}>
+            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-brand-600 transition" onClick={() => navigate('/dashboard/registrar')}>
               <ChevronLeft className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Registrar Dashboard</span>
             </div>
             <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
-              <Users className="w-8 h-8 text-blue-600" />
+              <Users className="w-8 h-8 text-brand-600" />
               Admission Applications
             </h1>
           </div>
@@ -106,7 +106,7 @@ const RegistrarAdmissions = () => {
                   onClick={() => setFilterStatus(status)}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
                     filterStatus === status 
-                      ? 'bg-blue-600 text-white shadow-md' 
+                      ? 'bg-brand-600 text-white shadow-md' 
                       : 'text-gray-500 hover:bg-gray-50'
                   }`}
                 >
@@ -141,24 +141,24 @@ const RegistrarAdmissions = () => {
                   key={app.id}
                   onClick={() => setSelectedApp(app)}
                   className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
-                    selectedApp?.id === app.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
+                    selectedApp?.id === app.id ? 'border-brand-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">
+                    <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest bg-brand-50 px-2 py-1 rounded">
                       {app.applicationNumber}
                     </span>
                     <span className="text-[10px] text-gray-400 font-bold">
                       {new Date(app.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{app.firstName} {app.lastName}</h3>
+                  <h3 className="font-bold text-gray-900 group-hover:text-brand-600 transition">{app.firstName} {app.lastName}</h3>
                   <p className="text-xs text-gray-500 font-medium mt-1 mb-4">{app.program?.name}</p>
                   <div className="flex items-center justify-between border-t border-gray-50 pt-3">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter flex items-center gap-1">
                       <GraduationCap className="w-3 h-3" /> GPA: {app.previousGrade || 'N/A'}
                     </span>
-                    <Eye className={`w-4 h-4 transition ${selectedApp?.id === app.id ? 'text-blue-600' : 'text-gray-300 group-hover:text-gray-500'}`} />
+                    <Eye className={`w-4 h-4 transition ${selectedApp?.id === app.id ? 'text-brand-600' : 'text-gray-300 group-hover:text-gray-500'}`} />
                   </div>
                 </div>
               ))
@@ -169,7 +169,7 @@ const RegistrarAdmissions = () => {
           <div className="lg:col-span-2">
             {selectedApp ? (
               <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in zoom-in-95 duration-300">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
+                <div className="bg-gradient-to-r from-brand-600 to-indigo-700 p-8 text-white">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-6">
                       <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center overflow-hidden border-2 border-white/30 shadow-xl">
@@ -198,7 +198,7 @@ const RegistrarAdmissions = () => {
                         <button 
                           onClick={() => handleProcess(selectedApp.id, 'ACCEPTED')}
                           disabled={processing}
-                          className="bg-white text-blue-600 hover:bg-blue-50 px-6 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 shadow-lg"
+                          className="bg-white text-brand-600 hover:bg-brand-50 px-6 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 shadow-lg"
                         >
                           <CheckCircle className="w-4 h-4" /> Accept Student
                         </button>
@@ -215,23 +215,23 @@ const RegistrarAdmissions = () => {
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Contact Information</h4>
                         <div className="space-y-3">
                           <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                            <Mail className="w-4 h-4 text-blue-500" /> {selectedApp.email}
+                            <Mail className="w-4 h-4 text-brand-500" /> {selectedApp.email}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                            <Phone className="w-4 h-4 text-blue-500" /> {selectedApp.phone}
+                            <Phone className="w-4 h-4 text-brand-500" /> {selectedApp.phone}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                            <Calendar className="w-4 h-4 text-blue-500" /> DOB: {new Date(selectedApp.dateOfBirth).toLocaleDateString()}
+                            <Calendar className="w-4 h-4 text-brand-500" /> DOB: {new Date(selectedApp.dateOfBirth).toLocaleDateString()}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                            <MapPin className="w-4 h-4 text-blue-500" /> {selectedApp.address || 'No address provided'}
+                            <MapPin className="w-4 h-4 text-brand-500" /> {selectedApp.address || 'No address provided'}
                           </div>
                         </div>
                       </div>
 
                       <div>
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Emergency Contact</h4>
-                        <div className="bg-blue-50/50 rounded-2xl p-5 space-y-3 border border-blue-100/50">
+                        <div className="bg-brand-50/50 rounded-2xl p-5 space-y-3 border border-brand-100/50">
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500">Name</span>
                             <span className="font-bold text-gray-900">{selectedApp.documents?.emergencyContact?.name || 'N/A'}</span>
@@ -275,7 +275,7 @@ const RegistrarAdmissions = () => {
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500">Previous Result</span>
-                            <span className="font-bold text-blue-600">{selectedApp.previousGrade || 'N/A'}</span>
+                            <span className="font-bold text-brand-600">{selectedApp.previousGrade || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500">Intake Semester</span>
@@ -292,7 +292,7 @@ const RegistrarAdmissions = () => {
                               href={`${import.meta.env.VITE_API_URL}${selectedApp.documents.transcriptUrl}`} 
                               target="_blank" 
                               rel="noreferrer"
-                              className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition group"
+                              className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-brand-200 hover:bg-brand-50/30 transition group"
                             >
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
@@ -303,7 +303,7 @@ const RegistrarAdmissions = () => {
                                   <p className="text-[10px] text-gray-400 uppercase font-bold">PDF Document</p>
                                 </div>
                               </div>
-                              <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-blue-600" />
+                              <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-brand-600" />
                             </a>
                           )}
                           {selectedApp.documents?.idDocumentUrl && (
@@ -311,7 +311,7 @@ const RegistrarAdmissions = () => {
                               href={`${import.meta.env.VITE_API_URL}${selectedApp.documents.idDocumentUrl}`} 
                               target="_blank" 
                               rel="noreferrer"
-                              className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition group"
+                              className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 hover:border-brand-200 hover:bg-brand-50/30 transition group"
                             >
                               <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -322,7 +322,7 @@ const RegistrarAdmissions = () => {
                                   <p className="text-[10px] text-gray-400 uppercase font-bold">Document Proof</p>
                                 </div>
                               </div>
-                              <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-blue-600" />
+                              <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-brand-600" />
                             </a>
                           )}
                         </div>

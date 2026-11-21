@@ -189,14 +189,14 @@ export default function ArifPaymentPage() {
                   <button
                     type="button"
                     onClick={() => setProvider('AWASH')}
-                    className={`w-full text-left p-4 rounded-2xl border transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`w-full text-left p-4 rounded-2xl border transition-all focus:outline-none focus:ring-2 focus:ring-brand-500 ${
                       provider === 'AWASH'
-                        ? 'border-blue-500 bg-blue-50'
+                        ? 'border-brand-500 bg-brand-50'
                         : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl bg-brand-600 text-white flex items-center justify-center">
                         <CreditCard className="w-6 h-6" />
                       </div>
                       <div className="min-w-0">
@@ -255,14 +255,14 @@ export default function ArifPaymentPage() {
                     type="button"
                     onClick={handleInitiate}
                     disabled={loading || !isPhoneValid}
-                    className="w-full bg-blue-600 text-white py-4 rounded-2xl font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:hover:bg-blue-600"
+                    className="w-full bg-brand-600 text-white py-4 rounded-2xl font-semibold hover:bg-brand-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:hover:bg-brand-600"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
                     {loading ? 'Processing…' : 'Pay Now'}
                   </button>
 
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    By clicking Pay Now, you’ll receive a secure Awash Birr prompt. Atlas Health College Portal never sees your PIN.
+                    By clicking Pay Now, you’ll receive a secure Awash Birr prompt. New Generation University College Portal never sees your PIN.
                   </p>
                 </div>
               </div>
@@ -272,9 +272,9 @@ export default function ArifPaymentPage() {
               <div className="text-center space-y-6">
                 <div className="relative w-28 h-28 mx-auto">
                   <div className="absolute inset-0 border-4 border-blue-50 rounded-full"></div>
-                  <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                  <div className="absolute inset-0 border-4 border-brand-600 rounded-full border-t-transparent animate-spin"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="w-10 h-10 text-blue-600" />
+                    <Loader2 className="w-10 h-10 text-brand-600" />
                   </div>
                 </div>
 
@@ -286,17 +286,17 @@ export default function ArifPaymentPage() {
                   </p>
                 </div>
 
-                <div className="bg-blue-50 p-5 rounded-2xl text-left border border-blue-100 space-y-3">
+                <div className="bg-brand-50 p-5 rounded-2xl text-left border border-brand-100 space-y-3">
                   <div className="flex gap-3">
-                    <AlertCircle className="w-5 h-5 text-blue-600 shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-brand-600 shrink-0" />
                     <div className="text-sm text-blue-900 space-y-2 leading-relaxed">
                       <p className="font-semibold">What to do</p>
-                      <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <ol className="list-decimal list-inside space-y-1 text-brand-700">
                         <li>Open Awash Birr</li>
-                        <li>Find the payment request from Atlas Health College</li>
+                        <li>Find the payment request from New Generation University College</li>
                         <li>Confirm with your PIN</li>
                       </ol>
-                      <p className="text-xs text-blue-700">This page checks status automatically every 3 seconds.</p>
+                      <p className="text-xs text-brand-700">This page checks status automatically every 3 seconds.</p>
                     </div>
                   </div>
                 </div>
@@ -372,7 +372,7 @@ export default function ArifPaymentPage() {
                 <button
                   type="button"
                   onClick={resetPayment}
-                  className="w-full bg-blue-600 text-white py-4 rounded-2xl font-semibold hover:bg-blue-700 transition"
+                  className="w-full bg-brand-600 text-white py-4 rounded-2xl font-semibold hover:bg-brand-700 transition"
                 >
                   Retry Payment
                 </button>

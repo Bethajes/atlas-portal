@@ -2,10 +2,126 @@ const prisma = require('../services/prisma');
 const crypto = require('crypto');
 const { recalculateStudentGPA, GRADE_POINTS } = require('../utils/gpa');
 
+// ─── SCHEDULE CONFLICT DETECTION ──────────────────────────────
+const checkScheduleConflicts = async (instructorId, schedules, excludeSectionId = null, semesterId = null) => {
+  if (!instructorId || !schedules || schedules.length === 0) return [];
+
+  const conflicts = [];
+
+  for (const schedule of schedules) {
+    const { dayOfWeek, startTime, endTime } = schedule;
+
+    // Check instructor conflicts
+    const instructorConflicts = await prisma.sectionSchedule.findMany({
+      where: {
+        section: {
+          instructorId,
+          semesterId: semesterId || undefined,
+          id: excludeSectionId ? { not: excludeSectionId } : undefined,
+        },
+        dayOfWeek,
+        OR: [
+          { startTime: { lte: startTime }, endTime: { gt: startTime } },
+          { startTime: { lt: endTime }, endTime: { gte: endTime } },
+          { startTime: { gte: startTime }, endTime: { lte: endTime } },
+        ],
+      },
+      include: {
+        section: {
+          include: {
+            course: { select: { code: true, title: true } },
+          },
+        },
+      },
+    });
+
+    if (instructorConflicts.length > 0) {
+      conflicts.push({
+        type: 'INSTRUCTOR_CONFLICT',
+        schedule,
+        conflictingSections: instructorConflicts.map(c => ({
+          sectionCode: c.section.sectionCode,
+          courseTitle: c.section.course.title,
+          dayOfWeek: c.dayOfWeek,
+          startTime: c.startTime,
+          endTime: c.endTime,
+        })),
+      });
+    }
+  }
+
+  return conflicts;
+};
+
+// ─── SMART STUDENT ASSIGNMENT ──────────────────────────────────
+const smartAssignStudents = async (sectionId, criteria = {}) => {
+  const section = await prisma.section.findUnique({
+    where: { id: sectionId },
+    include: { course: true, _count: { select: { enrollments: true } } },
+  });
+
+  if (!section) throw new Error('Section not found');
+
+  const availableSlots = section.maxStudents - section._count.enrollments;
+  if (availableSlots <= 0) return { assigned: [], message: 'Section is full' };
+
+  // Build student query based on criteria
+  const where = {
+    enrollments: {
+      none: {
+        section: {
+          courseId: section.courseId,
+          semesterId: section.semesterId,
+        },
+      },
+    },
+  };
+
+  if (criteria.departmentId) where.departmentId = criteria.departmentId;
+  if (criteria.programId) where.programId = criteria.programId;
+  if (criteria.minGPA) where.cumulativeGPA = { gte: criteria.minGPA };
+  if (criteria.maxGPA) where.cumulativeGPA = { ...where.cumulativeGPA, lte: criteria.maxGPA };
+
+  const students = await prisma.student.findMany({
+    where,
+    include: {
+      user: { select: { name: true, institutionalEmail: true } },
+      department: { select: { name: true } },
+      program: { select: { name: true } },
+    },
+    orderBy: [
+      { cumulativeGPA: 'desc' }, // Prioritize higher GPA
+      { user: { name: 'asc' } },
+    ],
+    take: availableSlots,
+  });
+
+  // Assign students
+  const assignments = [];
+  for (const student of students) {
+    const enrollment = await prisma.sectionEnrollment.create({
+      data: {
+        id: crypto.randomUUID(),
+        studentId: student.id,
+        sectionId,
+      },
+      include: {
+        student: { include: { user: { select: { name: true } } } },
+      },
+    });
+    assignments.push(enrollment);
+  }
+
+  return {
+    assigned: assignments,
+    message: `Assigned ${assignments.length} students to section`,
+  };
+};
+
 // ─── CREATE SECTION ──────────────────────────────────────────
 const createSection = async (req, res) => {
   try {
-    const { courseId, name, instructorId, semesterId, maxStudents } = req.body;
+    const { courseId, name, instructorId, semesterId, departmentId, maxStudents, roomNumber, schedules } = req.body;
 
     if (!courseId || !name) {
       return res.status(400).json({ success: false, message: 'courseId and name are required' });
@@ -19,6 +135,17 @@ const createSection = async (req, res) => {
       if (!instructor) return res.status(404).json({ success: false, message: 'Instructor not found' });
     }
 
+    // Auto-generate section code
+    const sectionCode = `${course.code}-${name}`;
+
+    // Check for duplicate section code
+    const existingCode = await prisma.section.findUnique({
+      where: { sectionCode },
+    });
+    if (existingCode) {
+      return res.status(400).json({ success: false, message: `Section code "${sectionCode}" already exists` });
+    }
+
     const existing = await prisma.section.findFirst({
       where: { courseId, name, semesterId: semesterId || null },
     });
@@ -26,19 +153,45 @@ const createSection = async (req, res) => {
       return res.status(400).json({ success: false, message: `Section "${name}" already exists for this course` });
     }
 
+    // Validate schedules for conflicts if provided
+    if (schedules && schedules.length > 0) {
+      const conflicts = await checkScheduleConflicts(instructorId, schedules, null, semesterId);
+      if (conflicts.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Schedule conflicts detected',
+          conflicts
+        });
+      }
+    }
+
     const section = await prisma.section.create({
       data: {
         id: crypto.randomUUID(),
         courseId,
         name,
+        sectionCode,
         instructorId: instructorId || null,
         semesterId: semesterId || null,
+        departmentId: departmentId || null,
         maxStudents: maxStudents || 40,
+        roomNumber: roomNumber || null,
         updatedAt: new Date(),
+        schedules: schedules ? {
+          create: schedules.map(s => ({
+            id: crypto.randomUUID(),
+            dayOfWeek: s.dayOfWeek,
+            startTime: s.startTime,
+            endTime: s.endTime,
+          }))
+        } : undefined,
       },
       include: {
         course: { select: { code: true, title: true } },
         instructor: { include: { user: { select: { name: true } } } },
+        department: { select: { name: true } },
+        schedules: true,
+        _count: { select: { enrollments: true } },
       },
     });
 
@@ -52,17 +205,31 @@ const createSection = async (req, res) => {
 // ─── GET SECTIONS (by course or all) ─────────────────────────
 const getSections = async (req, res) => {
   try {
-    const { courseId, semesterId, instructorId } = req.query;
+    const { courseId, semesterId, instructorId, departmentId, search } = req.query;
     const where = {};
     if (courseId) where.courseId = courseId;
     if (semesterId) where.semesterId = semesterId;
     if (instructorId) where.instructorId = instructorId;
+    if (departmentId) where.departmentId = departmentId;
+
+    // Search functionality
+    if (search) {
+      where.OR = [
+        { sectionCode: { contains: search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { course: { code: { contains: search, mode: 'insensitive' } } },
+        { course: { title: { contains: search, mode: 'insensitive' } } },
+        { instructor: { user: { name: { contains: search, mode: 'insensitive' } } } },
+      ];
+    }
 
     const sections = await prisma.section.findMany({
       where,
       include: {
         course: { select: { id: true, code: true, title: true, credits: true } },
         instructor: { include: { user: { select: { name: true } } } },
+        department: { select: { id: true, name: true } },
+        schedules: true,
         _count: { select: { enrollments: true } },
       },
       orderBy: [{ course: { code: 'asc' } }, { name: 'asc' }],
@@ -71,15 +238,22 @@ const getSections = async (req, res) => {
     const data = sections.map((s) => ({
       id: s.id,
       name: s.name,
+      sectionCode: s.sectionCode,
       courseId: s.courseId,
       courseCode: s.course.code,
       courseTitle: s.course.title,
       credits: s.course.credits,
       instructor: s.instructor?.user?.name ?? 'Unassigned',
       instructorId: s.instructorId,
+      department: s.department?.name ?? null,
+      departmentId: s.departmentId,
       semesterId: s.semesterId,
       maxStudents: s.maxStudents,
+      roomNumber: s.roomNumber,
       enrolledCount: s._count.enrollments,
+      capacity: `${s._count.enrollments}/${s.maxStudents}`,
+      utilization: Math.round((s._count.enrollments / s.maxStudents) * 100),
+      schedules: s.schedules,
     }));
 
     return res.status(200).json({ success: true, data });
@@ -397,6 +571,115 @@ const getMyEnrollments = async (req, res) => {
   }
 };
 
+// ─── SMART ASSIGN STUDENTS ────────────────────────────────────
+const smartAssign = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { criteria } = req.body;
+
+    const result = await smartAssignStudents(id, criteria || {});
+    return res.status(200).json({ success: true, data: result });
+  } catch (error) {
+    console.error('Smart assign error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── BULK ASSIGN STUDENTS ──────────────────────────────────────
+const bulkAssignStudents = async (req, res) => {
+  try {
+    const { assignments } = req.body; // [{ studentId, sectionId }, ...]
+
+    const results = [];
+    for (const assignment of assignments) {
+      try {
+        const enrollment = await prisma.sectionEnrollment.create({
+          data: {
+            id: crypto.randomUUID(),
+            studentId: assignment.studentId,
+            sectionId: assignment.sectionId,
+          },
+          include: {
+            student: { include: { user: { select: { name: true } } } },
+            section: { include: { course: { select: { code: true } } } },
+          },
+        });
+        results.push({ success: true, data: enrollment });
+      } catch (error) {
+        results.push({ success: false, error: error.message, assignment });
+      }
+    }
+
+    return res.status(200).json({ success: true, data: results });
+  } catch (error) {
+    console.error('Bulk assign error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── GET SECTION SUGGESTIONS FOR STUDENT ──────────────────────
+const getSectionSuggestions = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { studentId } = req.query;
+
+    const section = await prisma.section.findUnique({
+      where: { id },
+      include: { course: true, department: true },
+    });
+
+    if (!section) return res.status(404).json({ success: false, message: 'Section not found' });
+
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+      include: { department: true, program: true },
+    });
+
+    if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    // Calculate match score based on department, program, etc.
+    let score = 0;
+    if (section.departmentId === student.departmentId) score += 30;
+    if (section.course.departmentId === student.departmentId) score += 20;
+    // Add more scoring logic as needed
+
+    const suggestions = {
+      sectionId: id,
+      matchScore: score,
+      reasons: [],
+    };
+
+    if (section.departmentId === student.departmentId) {
+      suggestions.reasons.push('Same department');
+    }
+
+    return res.status(200).json({ success: true, data: suggestions });
+  } catch (error) {
+    console.error('Get suggestions error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ─── VALIDATE SECTION CONFIGURATION ───────────────────────────
+const validateSection = async (req, res) => {
+  try {
+    const { instructorId, schedules, semesterId, excludeSectionId } = req.body;
+
+    const conflicts = await checkScheduleConflicts(instructorId, schedules, excludeSectionId, semesterId);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        isValid: conflicts.length === 0,
+        conflicts,
+      },
+    });
+  } catch (error) {
+    console.error('Validate section error:', error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createSection,
   getSections,
@@ -408,4 +691,8 @@ module.exports = {
   getMyStudents,
   getMySections,
   getMyEnrollments,
+  smartAssign,
+  bulkAssignStudents,
+  getSectionSuggestions,
+  validateSection,
 };

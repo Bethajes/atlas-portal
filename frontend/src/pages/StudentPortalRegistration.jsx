@@ -58,7 +58,7 @@ function StepPill({ index, currentStep, label }) {
         className={[
           'w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all',
           isComplete ? 'bg-emerald-500 text-white' : '',
-          isActive ? 'bg-blue-600 text-white ring-4 ring-blue-100' : '',
+          isActive ? 'bg-brand-600 text-white ring-4 ring-blue-100' : '',
           !isActive && !isComplete ? 'bg-gray-100 text-gray-500' : '',
         ].join(' ')}
         aria-hidden="true"
@@ -259,7 +259,7 @@ export default function StudentPortalRegistration() {
 
   const card = (
     <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/60 border border-gray-100 overflow-hidden">
-          <div className="p-6 sm:p-8 bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+          <div className="p-6 sm:p-8 bg-gradient-to-br from-brand-600 to-brand-700 text-white">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-blue-100 text-sm font-bold">Guided registration</p>
@@ -294,14 +294,14 @@ export default function StudentPortalRegistration() {
 
           <div className="p-6 sm:p-8">
             {restoredDraft ? (
-              <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 flex items-center justify-between gap-3">
-                <p className="text-xs sm:text-sm font-bold text-blue-800">
+              <div className="mb-6 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 flex items-center justify-between gap-3">
+                <p className="text-xs sm:text-sm font-bold text-brand-700">
                   We restored your saved progress so you can continue where you left off.
                 </p>
                 <button
                   type="button"
                   onClick={() => setRestoredDraft(false)}
-                  className="text-xs font-black text-blue-700 hover:underline shrink-0"
+                  className="text-xs font-black text-brand-700 hover:underline shrink-0"
                 >
                   Dismiss
                 </button>
@@ -313,11 +313,11 @@ export default function StudentPortalRegistration() {
                 {savedAt ? `Saved ${new Date(savedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Saving…'}
               </p>
               {inStudentPortal ? (
-                <Link to="/dashboard" className="text-xs font-black text-blue-600 hover:underline">
+                <Link to="/dashboard" className="text-xs font-black text-brand-600 hover:underline">
                   Back to dashboard
                 </Link>
               ) : (
-                <Link to="/login" className="text-xs font-black text-blue-600 hover:underline">
+                <Link to="/login" className="text-xs font-black text-brand-600 hover:underline">
                   Already registered? Sign in
                 </Link>
               )}
@@ -327,7 +327,7 @@ export default function StudentPortalRegistration() {
               {step === 1 ? (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                    <User className="w-5 h-5 text-blue-600" />
+                    <User className="w-5 h-5 text-brand-600" />
                     <h2 className="text-lg font-black text-gray-900">Personal Information</h2>
                   </div>
 
@@ -348,7 +348,7 @@ export default function StudentPortalRegistration() {
                           placeholder="e.g., Abebe Kebede"
                           className={[
                             'w-full pl-12 pr-12 py-4 rounded-2xl bg-gray-50 border outline-none transition text-base',
-                            touched.name && errors.name ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-blue-500',
+                            touched.name && errors.name ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-brand-500',
                           ].join(' ')}
                           autoComplete="name"
                         />
@@ -372,7 +372,7 @@ export default function StudentPortalRegistration() {
                           placeholder="name@example.com"
                           className={[
                             'w-full pl-12 pr-12 py-4 rounded-2xl bg-gray-50 border outline-none transition text-base',
-                            touched.email && errors.email ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-blue-500',
+                            touched.email && errors.email ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-brand-500',
                           ].join(' ')}
                           autoComplete="email"
                           inputMode="email"
@@ -396,7 +396,7 @@ export default function StudentPortalRegistration() {
                           placeholder="+251 9xx xxx xxx"
                           className={[
                             'w-full pl-12 pr-12 py-4 rounded-2xl bg-gray-50 border outline-none transition text-base',
-                            touched.phone && errors.phone ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-blue-500',
+                            touched.phone && errors.phone ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-brand-500',
                           ].join(' ')}
                           autoComplete="tel"
                           inputMode="tel"
@@ -410,7 +410,7 @@ export default function StudentPortalRegistration() {
               {step === 2 ? (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                    <BookOpen className="w-5 h-5 text-blue-600" />
+                    <BookOpen className="w-5 h-5 text-brand-600" />
                     <h2 className="text-lg font-black text-gray-900">Academic Information</h2>
                   </div>
 
@@ -430,7 +430,7 @@ export default function StudentPortalRegistration() {
                           onBlur={() => setTouched((p) => ({ ...p, departmentId: true }))}
                           className={[
                             'w-full pl-12 pr-12 py-4 rounded-2xl bg-gray-50 border outline-none transition text-base appearance-none',
-                            touched.departmentId && errors.departmentId ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-blue-500',
+                            touched.departmentId && errors.departmentId ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-brand-500',
                           ].join(' ')}
                           disabled={loadingDepartments}
                         >
@@ -467,7 +467,7 @@ export default function StudentPortalRegistration() {
                           onBlur={() => setTouched((p) => ({ ...p, programId: true }))}
                           className={[
                             'w-full pl-12 pr-12 py-4 rounded-2xl bg-gray-50 border outline-none transition text-base appearance-none',
-                            touched.programId && errors.programId ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-blue-500',
+                            touched.programId && errors.programId ? 'border-red-200 focus:ring-4 focus:ring-red-50 focus:border-red-400' : 'border-gray-100 focus:ring-4 focus:ring-blue-50 focus:border-brand-500',
                           ].join(' ')}
                           disabled={!values.departmentId || loadingPrograms}
                         >
@@ -489,7 +489,7 @@ export default function StudentPortalRegistration() {
               {step === 3 ? (
                 <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                   <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
-                    <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                    <CheckCircle2 className="w-5 h-5 text-brand-600" />
                     <h2 className="text-lg font-black text-gray-900">Review & Submit</h2>
                   </div>
 
@@ -562,7 +562,7 @@ export default function StudentPortalRegistration() {
                     onClick={goNext}
                     className={[
                       'sm:flex-[2] py-4 rounded-2xl font-black transition inline-flex items-center justify-center gap-2 shadow-lg',
-                      canContinue ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-100' : 'bg-blue-300 text-white/80 cursor-not-allowed shadow-transparent',
+                      canContinue ? 'bg-brand-600 text-white hover:bg-brand-700 shadow-blue-100' : 'bg-blue-300 text-white/80 cursor-not-allowed shadow-transparent',
                     ].join(' ')}
                   >
                     Continue
@@ -572,7 +572,7 @@ export default function StudentPortalRegistration() {
                   <button
                     type="submit"
                     disabled={submitting || !step1Valid || !step2Valid}
-                    className="sm:flex-[2] bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:hover:bg-blue-600"
+                    className="sm:flex-[2] bg-brand-600 text-white py-4 rounded-2xl font-black hover:bg-brand-700 transition inline-flex items-center justify-center gap-2 shadow-lg shadow-blue-100 disabled:opacity-50 disabled:hover:bg-brand-600"
                   >
                     {submitting ? (
                       <span className="flex items-center gap-2">
@@ -606,10 +606,10 @@ export default function StudentPortalRegistration() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl text-white shadow-xl shadow-blue-200 mb-5">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-600 rounded-2xl text-white shadow-xl shadow-brand-200 mb-5">
             <GraduationCap className="w-9 h-9" />
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Atlas Health College Portal</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">New Generation University College Portal</h1>
           <p className="mt-3 text-gray-600 text-base">Student Registration</p>
         </div>
         {card}

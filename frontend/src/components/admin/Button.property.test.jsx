@@ -17,13 +17,13 @@ describe('Button variant classes (Property 1)', () => {
         const btn = container.querySelector('button');
         
         if (variant === 'primary') {
-          expect(btn.className).toMatch(/bg-blue-600/);
-          expect(btn.className).toMatch(/hover:bg-blue-700/);
+          expect(btn.className).toMatch(/bg-brand-600/);
+          expect(btn.className).toMatch(/hover:bg-brand-700/);
           expect(btn.className).toMatch(/text-white/);
         } else if (variant === 'secondary') {
-          expect(btn.className).toMatch(/bg-gray-100/);
-          expect(btn.className).toMatch(/hover:bg-gray-200/);
-          expect(btn.className).toMatch(/text-gray-700/);
+          expect(btn.className).toMatch(/bg-white/);
+          expect(btn.className).toMatch(/hover:bg-slate-50/);
+          expect(btn.className).toMatch(/text-slate-700/);
         } else if (variant === 'danger') {
           expect(btn.className).toMatch(/bg-red-500/);
           expect(btn.className).toMatch(/hover:bg-red-600/);

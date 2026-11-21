@@ -675,7 +675,7 @@ const getMyTranscript = async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
-        institution: 'Atlas Health College',
+        institution: 'New Generation University College',
         student: {
           name: student.user?.name,
           studentId: student.studentId,

@@ -91,7 +91,7 @@ const RegistrarApproval = () => {
   if (loading && pendingRegistrations.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -103,12 +103,12 @@ const RegistrarApproval = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/dashboard/registrar')}>
+            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-brand-600 transition" onClick={() => navigate('/dashboard/registrar')}>
               <ChevronLeft className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Registrar Dashboard</span>
             </div>
             <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
-              <ClipboardCheck className="w-8 h-8 text-blue-600" />
+              <ClipboardCheck className="w-8 h-8 text-brand-600" />
               Semester Approvals
             </h1>
           </div>
@@ -121,7 +121,7 @@ const RegistrarApproval = () => {
                 placeholder="Search student..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all w-64 shadow-sm"
+                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-4 focus:ring-blue-50 focus:border-brand-500 outline-none transition-all w-64 shadow-sm"
               />
             </div>
           </div>
@@ -151,18 +151,18 @@ const RegistrarApproval = () => {
                   key={reg.id}
                   onClick={() => setSelectedReg(reg)}
                   className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
-                    selectedReg?.id === reg.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
+                    selectedReg?.id === reg.id ? 'border-brand-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-3">
-                    <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded">
+                    <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest bg-brand-50 px-2 py-1 rounded">
                       {reg.student?.studentId}
                     </span>
                     <span className="text-[10px] text-gray-400 font-bold">
                       {new Date(reg.registrationDate).toLocaleDateString()}
                     </span>
                   </div>
-                  <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition">{reg.student?.user?.name}</h3>
+                  <h3 className="font-bold text-gray-900 group-hover:text-brand-600 transition">{reg.student?.user?.name}</h3>
                   <p className="text-xs text-gray-500 font-medium mt-1 mb-4">{reg.academicSemester?.name}</p>
                   
                   <div className="flex items-center justify-between border-t border-gray-50 pt-3">
@@ -172,7 +172,7 @@ const RegistrarApproval = () => {
                         {reg.isPaid ? 'Paid' : 'Payment Pending'}
                       </span>
                     </div>
-                    <ArrowRight className={`w-4 h-4 transition ${selectedReg?.id === reg.id ? 'text-blue-600 translate-x-1' : 'text-gray-300 group-hover:text-gray-500'}`} />
+                    <ArrowRight className={`w-4 h-4 transition ${selectedReg?.id === reg.id ? 'text-brand-600 translate-x-1' : 'text-gray-300 group-hover:text-gray-500'}`} />
                   </div>
                 </div>
               ))
@@ -207,7 +207,7 @@ const RegistrarApproval = () => {
                       <button 
                         onClick={() => handleProcess(selectedReg.id, 'APPROVED')}
                         disabled={processing}
-                        className="bg-white text-blue-700 hover:bg-blue-50 px-6 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 shadow-lg"
+                        className="bg-white text-brand-700 hover:bg-brand-50 px-6 py-2.5 rounded-xl text-sm font-black transition flex items-center gap-2 shadow-lg"
                       >
                         <CheckCircle className="w-4 h-4" /> Approve
                       </button>
@@ -224,9 +224,9 @@ const RegistrarApproval = () => {
                       </h4>
                       <div className="space-y-3">
                         {selectedReg.registrationCourse?.map((rc) => (
-                          <div key={rc.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 flex justify-between items-center group hover:border-blue-200 transition-all">
+                          <div key={rc.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 flex justify-between items-center group hover:border-brand-200 transition-all">
                             <div>
-                              <p className="text-xs font-black text-blue-600 mb-1">{rc.course?.code}</p>
+                              <p className="text-xs font-black text-brand-600 mb-1">{rc.course?.code}</p>
                               <p className="text-sm font-bold text-gray-800">{rc.course?.title}</p>
                             </div>
                             <span className="text-[10px] font-black bg-white px-2 py-1 rounded-lg border border-gray-100 text-gray-500">

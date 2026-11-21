@@ -72,7 +72,7 @@ export default function AnalyticsDashboard() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <StatCard label="Total Students"    value={totals.totalStudents}    icon={Users}         color="text-blue-600"   bg="bg-blue-50"   loading={loading} />
+        <StatCard label="Total Students"    value={totals.totalStudents}    icon={Users}         color="text-brand-600"   bg="bg-brand-50"   loading={loading} />
         <StatCard label="Total Courses"     value={totals.totalCourses}     icon={BookOpen}      color="text-amber-600"  bg="bg-amber-50"  loading={loading} />
         <StatCard label="Total Programs"    value={totals.totalPrograms}    icon={GraduationCap} color="text-violet-600" bg="bg-violet-50" loading={loading} />
         <StatCard label="Total Instructors" value={totals.totalInstructors} icon={Briefcase}     color="text-indigo-600" bg="bg-indigo-50" loading={loading} />

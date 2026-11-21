@@ -74,7 +74,7 @@ const RegistrarStudents = () => {
   if (loading && students.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -86,12 +86,12 @@ const RegistrarStudents = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div>
-            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-blue-600 transition" onClick={() => navigate('/dashboard/registrar')}>
+            <div className="flex items-center gap-2 text-gray-500 mb-2 cursor-pointer hover:text-brand-600 transition" onClick={() => navigate('/dashboard/registrar')}>
               <ChevronLeft className="w-4 h-4" />
               <span className="text-xs font-bold uppercase tracking-wider">Registrar Dashboard</span>
             </div>
             <h1 className="text-2xl font-black text-gray-900 flex items-center gap-3">
-              <Users className="w-8 h-8 text-blue-600" />
+              <Users className="w-8 h-8 text-brand-600" />
               Student Directory
             </h1>
           </div>
@@ -133,7 +133,7 @@ const RegistrarStudents = () => {
                   key={student.id}
                   onClick={() => setSelectedStudent(student)}
                   className={`bg-white p-5 rounded-2xl border transition-all cursor-pointer group hover:shadow-lg ${
-                    selectedStudent?.id === student.id ? 'border-blue-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
+                    selectedStudent?.id === student.id ? 'border-brand-600 ring-4 ring-blue-50 shadow-md' : 'border-gray-100'
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -145,10 +145,10 @@ const RegistrarStudents = () => {
                       )}
                     </div>
                     <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 group-hover:text-blue-600 transition truncate">{student.user?.name}</h3>
-                      <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mt-1">{student.studentId}</p>
+                      <h3 className="font-bold text-gray-900 group-hover:text-brand-600 transition truncate">{student.user?.name}</h3>
+                      <p className="text-[10px] font-black text-brand-600 uppercase tracking-widest mt-1">{student.studentId}</p>
                     </div>
-                    <ArrowRight className={`w-4 h-4 transition ${selectedStudent?.id === student.id ? 'text-blue-600 translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
+                    <ArrowRight className={`w-4 h-4 transition ${selectedStudent?.id === student.id ? 'text-brand-600 translate-x-1' : 'text-gray-200 group-hover:text-gray-400'}`} />
                   </div>
                 </div>
               ))
@@ -196,13 +196,13 @@ const RegistrarStudents = () => {
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Identity & Contact</h4>
                         <div className="space-y-4 bg-gray-50 p-6 rounded-3xl border border-gray-100">
                           <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                            <Mail className="w-4 h-4 text-blue-500" /> {selectedStudent.user?.institutionalEmail}
+                            <Mail className="w-4 h-4 text-brand-500" /> {selectedStudent.user?.institutionalEmail}
                           </div>
                           <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                            <UserCheck className="w-4 h-4 text-blue-500" /> Student ID: <span className="font-black text-gray-900 ml-1">{selectedStudent.studentId}</span>
+                            <UserCheck className="w-4 h-4 text-brand-500" /> Student ID: <span className="font-black text-gray-900 ml-1">{selectedStudent.studentId}</span>
                           </div>
                           <div className="flex items-center gap-3 text-sm text-gray-600 font-medium">
-                            <Calendar className="w-4 h-4 text-blue-500" /> Enrolled Since: <span className="font-bold text-gray-900 ml-1">{selectedStudent.enrollmentYear}</span>
+                            <Calendar className="w-4 h-4 text-brand-500" /> Enrolled Since: <span className="font-bold text-gray-900 ml-1">{selectedStudent.enrollmentYear}</span>
                           </div>
                         </div>
                       </div>
@@ -210,8 +210,8 @@ const RegistrarStudents = () => {
                       <div>
                         <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Academic Performance</h4>
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                            <p className="text-[10px] font-black text-blue-600 uppercase tracking-wider mb-1">Cumulative GPA</p>
+                          <div className="bg-brand-50 p-4 rounded-2xl border border-brand-100">
+                            <p className="text-[10px] font-black text-brand-600 uppercase tracking-wider mb-1">Cumulative GPA</p>
                             <p className="text-2xl font-black text-blue-900">{selectedStudent.cumulativeGPA?.toFixed(2) || '0.00'}</p>
                           </div>
                           <div className="bg-indigo-50 p-4 rounded-2xl border border-indigo-100">

@@ -26,11 +26,11 @@ export default function ConfirmModal({
 
         {/* Warning Message */}
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             Are you sure you want to delete{' '}
-            <span className="font-semibold text-gray-900">{itemName}</span>?
+            <span className="font-semibold text-slate-900">{itemName}</span>?
           </p>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-slate-500">
             This action cannot be undone.
           </p>
         </div>

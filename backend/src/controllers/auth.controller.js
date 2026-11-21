@@ -9,6 +9,54 @@ const {
 const crypto = require('crypto');
 const { sendPasswordResetEmail } = require('../services/email.service');
 
+// The portal has used more than one institutional domain over time. Accept
+// either domain (and legacy mixed-case addresses) so existing accounts keep
+// working after the rebrand to @ngu.edu.et.
+const INSTITUTIONAL_EMAIL_DOMAINS = ['ngu.edu.et', 'atlas.edu.et', 'atlas.edu'];
+
+const normalizeInstitutionalEmail = (value) =>
+  String(value ?? '').trim().toLowerCase();
+
+/**
+ * Find a user by login email, tolerating case differences and legacy domains.
+ */
+const findUserForLogin = async (email, select) => {
+  const normalizedEmail = normalizeInstitutionalEmail(email);
+  if (!normalizedEmail) return null;
+
+  const findExact = (candidate) =>
+    prisma.user.findUnique({ where: { institutionalEmail: candidate }, select });
+
+  const findCaseInsensitive = (candidate) =>
+    prisma.user.findFirst({
+      where: { institutionalEmail: { equals: candidate, mode: 'insensitive' } },
+      select,
+    });
+
+  // Fast path: the address is already stored exactly as entered.
+  let user = await findExact(normalizedEmail);
+  if (user) return user;
+
+  // Legacy rows may contain uppercase letters.
+  user = await findCaseInsensitive(normalizedEmail);
+  if (user) return user;
+
+  // Try the same local-part on the other institutional domains.
+  const atIndex = normalizedEmail.lastIndexOf('@');
+  if (atIndex <= 0) return null;
+
+  const localPart = normalizedEmail.slice(0, atIndex);
+  const domain = normalizedEmail.slice(atIndex + 1);
+
+  for (const aliasDomain of INSTITUTIONAL_EMAIL_DOMAINS) {
+    if (aliasDomain === domain) continue;
+    user = await findCaseInsensitive(`${localPart}@${aliasDomain}`);
+    if (user) return user;
+  }
+
+  return null;
+};
+
 /**
  * @desc    Register a new student
  * @route   POST /api/auth/register
@@ -18,22 +66,24 @@ const register = async (req, res) => {
   try {
     const { name, institutionalEmail, recoveryEmail, password, studentId, departmentId, programId } = req.body;
     const profileImage = req.file ? `/uploads/profiles/${req.file.filename}` : null;
+    const normalizedInstitutionalEmail = normalizeInstitutionalEmail(institutionalEmail);
+    const normalizedRecoveryEmail = String(recoveryEmail ?? '').trim();
 
-    console.log('📝 REGISTER ATTEMPT:', { name, institutionalEmail, departmentId });
+    console.log('📝 REGISTER ATTEMPT:', { name, institutionalEmail: normalizedInstitutionalEmail, departmentId });
 
     // Validation
-    if (!name || !institutionalEmail || !recoveryEmail || !password) {
+    if (!name || !normalizedInstitutionalEmail || !normalizedRecoveryEmail || !password) {
       return res.status(400).json({
         success: false,
         message: 'Required fields: name, institutionalEmail, recoveryEmail, password',
       });
     }
 
-    const emailPattern = /^[a-zA-Z0-9._-]+@atlas\.edu\.et$/;
-    if (!emailPattern.test(institutionalEmail)) {
+    const emailPattern = /^[a-z0-9._-]+@(ngu\.edu\.et|atlas\.edu\.et)$/;
+    if (!emailPattern.test(normalizedInstitutionalEmail)) {
       return res.status(400).json({
         success: false,
-        message: 'Institutional email must be in @atlas.edu.et format',
+        message: 'Institutional email must be in @ngu.edu.et format',
       });
     }
 
@@ -46,7 +96,7 @@ const register = async (req, res) => {
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
-      where: { institutionalEmail },
+      where: { institutionalEmail: normalizedInstitutionalEmail },
     });
 
     if (existingUser) {
@@ -129,8 +179,8 @@ const register = async (req, res) => {
         data: {
           id: userId,
           name,
-          institutionalEmail,
-          recoveryEmail,
+          institutionalEmail: normalizedInstitutionalEmail,
+          recoveryEmail: normalizedRecoveryEmail,
           password: hashedPassword,
           role: 'STUDENT',
           profileImage,
@@ -191,11 +241,12 @@ const register = async (req, res) => {
  */
 const login = async (req, res) => {
   try {
-    const { institutionalEmail, password } = req.body;
+    const { institutionalEmail, email, password } = req.body;
+    const loginEmail = institutionalEmail || email;
 
-    console.log('🔑 LOGIN ATTEMPT:', institutionalEmail);
+    console.log('🔑 LOGIN ATTEMPT:', normalizeInstitutionalEmail(loginEmail));
 
-    if (!institutionalEmail || !password) {
+    if (!loginEmail || !password) {
       return res.status(400).json({
         success: false,
         message: 'Email and password are required',
@@ -204,9 +255,20 @@ const login = async (req, res) => {
 
     let user;
     try {
-      user = await prisma.user.findUnique({
-        where: { institutionalEmail },
-        select: {
+      user = await findUserForLogin(loginEmail, {
+        id: true,
+        name: true,
+        institutionalEmail: true,
+        password: true,
+        role: true,
+        adminRole: true,
+        profileImage: true,
+        isFirstLogin: true,
+      });
+    } catch (error) {
+      // Fallback for older DB snapshots missing newer columns (e.g. isFirstLogin)
+      if (error.code === 'P2022') {
+        user = await findUserForLogin(loginEmail, {
           id: true,
           name: true,
           institutionalEmail: true,
@@ -214,23 +276,6 @@ const login = async (req, res) => {
           role: true,
           adminRole: true,
           profileImage: true,
-          isFirstLogin: true,
-        },
-      });
-    } catch (error) {
-      // Fallback for older DB snapshots missing newer columns (e.g. isFirstLogin)
-      if (error.code === 'P2022') {
-        user = await prisma.user.findUnique({
-          where: { institutionalEmail },
-          select: {
-            id: true,
-            name: true,
-            institutionalEmail: true,
-            password: true,
-            role: true,
-            adminRole: true,
-            profileImage: true,
-          },
         });
       } else {
         throw error;
@@ -408,17 +453,21 @@ const refreshToken = async (req, res) => {
  */
 const forgotPassword = async (req, res) => {
   try {
-    const { institutionalEmail } = req.body;
+    const { institutionalEmail, email } = req.body;
+    const loginEmail = institutionalEmail || email;
 
-    if (!institutionalEmail) {
+    if (!loginEmail) {
       return res.status(400).json({
         success: false,
         message: 'Institutional email is required',
       });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { institutionalEmail },
+    const user = await findUserForLogin(loginEmail, {
+      id: true,
+      name: true,
+      institutionalEmail: true,
+      recoveryEmail: true,
     });
 
     if (!user) {

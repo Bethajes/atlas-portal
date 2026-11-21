@@ -56,7 +56,7 @@ const GRADES = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'F
 const GRADE_COLOR = (g) => {
   if (!g) return 'bg-gray-100 text-gray-400';
   if (['A+','A','A-'].includes(g)) return 'bg-emerald-100 text-emerald-700';
-  if (['B+','B','B-'].includes(g)) return 'bg-blue-100 text-blue-700';
+  if (['B+','B','B-'].includes(g)) return 'bg-brand-100 text-brand-700';
   if (['C+','C','C-'].includes(g)) return 'bg-amber-100 text-amber-700';
   if (['D+','D'].includes(g))      return 'bg-orange-100 text-orange-700';
   return 'bg-red-100 text-red-700';
@@ -75,7 +75,7 @@ const MiniBar = ({ value, max, color = 'bg-indigo-500' }) => (
 // ─── Status badge ─────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
   const map = {
-    ENROLLED:  'bg-blue-50 text-blue-600 border-blue-200',
+    ENROLLED:  'bg-brand-50 text-brand-600 border-brand-200',
     COMPLETED: 'bg-emerald-50 text-emerald-600 border-emerald-200',
     FAILED:    'bg-red-50 text-red-600 border-red-200',
     DROPPED:   'bg-gray-50 text-gray-400 border-gray-200',
@@ -106,7 +106,7 @@ export default function InstructorDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab]           = useState('dashboard');
+  const [activeTab, setActiveTab]           = useState('overview');
   const [mobileSidebar, setMobileSidebar]   = useState(false);
   const [sections, setSections]             = useState([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
@@ -307,7 +307,7 @@ export default function InstructorDashboard() {
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-lg">A</div>
           <div>
-            <p className="text-white font-bold text-sm leading-tight">Atlas Portal</p>
+            <p className="text-white font-bold text-sm leading-tight">NGUC Portal</p>
             <p className="text-slate-400 text-[11px]">Instructor Panel</p>
           </div>
         </div>
@@ -665,7 +665,7 @@ export default function InstructorDashboard() {
                   {/* Stats row */}
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { label: 'Enrolled',  value: sectionStudents.length,                                                    color: 'text-blue-600',    bg: 'bg-blue-50' },
+                      { label: 'Enrolled',  value: sectionStudents.length,                                                    color: 'text-brand-600',    bg: 'bg-brand-50' },
                       { label: 'Graded',    value: sectionStudents.filter(e => e.letterGrade).length,                         color: 'text-emerald-600', bg: 'bg-emerald-50' },
                       { label: 'Pending',   value: sectionStudents.filter(e => !e.letterGrade && e.status === 'ENROLLED').length, color: 'text-amber-600',   bg: 'bg-amber-50' },
                     ].map(({ label, value, color, bg }) => (

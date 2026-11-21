@@ -138,7 +138,7 @@ const initializeChapaPayment = async (req, res) => {
       return_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/payment-status?tx_ref=${tx_ref}`,
       customization: {
         title: 'Tuition Fee Payment',
-        description: 'Payment for Atlas Health College Portal',
+        description: 'Payment for New Generation University College Portal',
       },
     };
 
@@ -317,7 +317,7 @@ const initiatePayment = async (req, res) => {
         step1: `Note your reference number: ${referenceNumber}`,
         step2: 'Open Awash Bank or Telebirr app',
         step3: 'Select "School / Education Payment"',
-        step4: 'Enter Atlas Health College and your reference number',
+        step4: 'Enter New Generation University College and your reference number',
         step5: 'Complete the payment, then come back to verify',
       },
     });
@@ -489,7 +489,7 @@ const getMyPayments = async (req, res) => {
 
     const payments = await prisma.payment.findMany({
       where: { studentId: student.id },
-      include: { invoice: { include: { semester: { select: { name: true } } } } },
+      include: { invoice: { include: { academicSemester: { select: { name: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -506,7 +506,7 @@ const getAllPayments = async (req, res) => {
     const payments = await prisma.payment.findMany({
       include: {
         student: { include: { user: { select: { name: true, institutionalEmail: true } } } },
-        invoice: { include: { semester: { select: { name: true } } } },
+        invoice: { include: { academicSemester: { select: { name: true } } } },
       },
       orderBy: { createdAt: 'desc' },
     });

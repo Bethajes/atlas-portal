@@ -25,7 +25,7 @@ const fmtShort = iso =>
 
 const STATUS_STYLES = {
   DRAFT:     'bg-amber-50 text-amber-700 border-amber-200',
-  SUBMITTED: 'bg-blue-50 text-blue-700 border-blue-200',
+  SUBMITTED: 'bg-brand-50 text-brand-700 border-brand-200',
   APPROVED:  'bg-emerald-50 text-emerald-700 border-emerald-200',
   REJECTED:  'bg-red-50 text-red-700 border-red-200',
 };
@@ -70,13 +70,13 @@ function SkeletonPage() {
 function CountdownBadge({ days, urgent }) {
   return (
     <div className={`text-center rounded-xl px-4 py-2 shrink-0 transition-colors ${
-      urgent ? 'bg-amber-100' : days === undefined ? 'bg-blue-100' : 'bg-emerald-100'
+      urgent ? 'bg-amber-100' : days === undefined ? 'bg-brand-100' : 'bg-emerald-100'
     }`}>
       <p className={`text-2xl font-bold tabular-nums ${
-        urgent ? 'text-amber-700' : days === undefined ? 'text-blue-700' : 'text-emerald-700'
+        urgent ? 'text-amber-700' : days === undefined ? 'text-brand-700' : 'text-emerald-700'
       }`}>{days ?? '—'}</p>
       <p className={`text-[10px] font-bold uppercase tracking-wider ${
-        urgent ? 'text-amber-500' : days === undefined ? 'text-blue-500' : 'text-emerald-500'
+        urgent ? 'text-amber-500' : days === undefined ? 'text-brand-500' : 'text-emerald-500'
       }`}>days{days !== undefined && (urgent ? ' left' : ' away')}</p>
     </div>
   );
@@ -89,13 +89,13 @@ function RegistrationStateBanner({ registration, semester }) {
   const { state, message, daysUntilOpen, daysUntilClose } = registration;
 
   if (state === 'UPCOMING') return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 flex items-start gap-3">
-      <Timer className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+    <div className="bg-brand-50 border border-brand-200 rounded-xl px-5 py-4 flex items-start gap-3">
+      <Timer className="w-5 h-5 text-brand-600 mt-0.5 shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-blue-800">Registration Opening Soon</p>
-        <p className="text-xs text-blue-700 mt-0.5">{message}</p>
+        <p className="text-sm font-bold text-brand-700">Registration Opening Soon</p>
+        <p className="text-xs text-brand-700 mt-0.5">{message}</p>
         {semester?.registrationStart && (
-          <p className="text-[11px] text-blue-600 mt-1">Opens: {fmtLong(semester.registrationStart)}</p>
+          <p className="text-[11px] text-brand-600 mt-1">Opens: {fmtLong(semester.registrationStart)}</p>
         )}
       </div>
       <CountdownBadge days={daysUntilOpen} />
@@ -175,7 +175,7 @@ const COURSE_COLS = ['Course', 'Instructor', 'Credits', 'Section', 'Status'];
 
 function CourseRow({ c, idx }) {
   return (
-    <tr className={`transition-colors ${c.alreadyEnrolled ? 'bg-emerald-50/30' : 'hover:bg-blue-50/20'}`}>
+    <tr className={`transition-colors ${c.alreadyEnrolled ? 'bg-emerald-50/30' : 'hover:bg-brand-50/20'}`}>
       {idx !== undefined && (
         <td className="px-5 py-3.5 text-xs text-gray-400 tabular-nums">{idx + 1}</td>
       )}
@@ -265,8 +265,8 @@ function RegistrationSlip({ draft, data }) {
       desc: 'Your enrollment is confirmed. Access all course materials from your dashboard.',
     },
     SUBMITTED: {
-      wrapClass: 'bg-blue-50 border-blue-200',
-      icon: <Clock className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />,
+      wrapClass: 'bg-brand-50 border-brand-200',
+      icon: <Clock className="w-5 h-5 text-brand-600 mt-0.5 shrink-0" />,
       title: 'Registration Submitted — Awaiting Registrar Approval',
       desc: 'Your registration is under review. You will be notified once processed.',
     },
@@ -296,7 +296,7 @@ function RegistrationSlip({ draft, data }) {
         <div className="bg-slate-800 px-6 py-5 text-white print:bg-slate-800 print:text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Atlas Health College</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">New Generation University College</p>
               <h2 className="text-lg font-bold">Course Registration Slip</h2>
               <p className="text-slate-300 text-sm mt-0.5">{data?.semesterLabel}</p>
             </div>
@@ -413,7 +413,7 @@ function RegistrationSidebar({
       {/* Summary card */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
         <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <FileText className="w-4 h-4 text-blue-700" /> Registration Summary
+          <FileText className="w-4 h-4 text-brand-700" /> Registration Summary
         </h3>
 
         <div className="space-y-2.5 mb-5">
@@ -430,7 +430,7 @@ function RegistrationSidebar({
               <span className={`text-xs font-bold ${
                 label === 'Reg. Status'
                   ? regState?.state === 'OPEN'     ? 'text-emerald-700'
-                  : regState?.state === 'UPCOMING' ? 'text-blue-700'
+                  : regState?.state === 'UPCOMING' ? 'text-brand-700'
                   : 'text-gray-500'
                   : label === 'Total Credits' && overLimit ? 'text-orange-600' : 'text-gray-900'
               }`}>{value || '—'}</span>
@@ -452,9 +452,9 @@ function RegistrationSidebar({
           </button>
         )}
         {!regOpen && regState?.state === 'UPCOMING' && (
-          <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
-            <Timer className="w-4 h-4 text-blue-600 shrink-0" />
-            <p className="text-xs text-blue-700 font-medium">Registration not yet open</p>
+          <div className="flex items-center gap-2 bg-brand-50 border border-brand-200 rounded-lg px-3 py-2.5">
+            <Timer className="w-4 h-4 text-brand-600 shrink-0" />
+            <p className="text-xs text-brand-700 font-medium">Registration not yet open</p>
           </div>
         )}
         {!regOpen && regState?.state === 'CLOSED' && (
@@ -480,12 +480,12 @@ function RegistrationSidebar({
       </div>
 
       {/* How it works */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <div className="bg-brand-50 border border-brand-200 rounded-xl p-4">
         <div className="flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+          <Info className="w-4 h-4 text-brand-600 mt-0.5 shrink-0" />
           <div>
-            <p className="text-xs font-bold text-blue-800 mb-1.5">How Registration Works</p>
-            <ul className="text-[11px] text-blue-700 space-y-1 leading-relaxed">
+            <p className="text-xs font-bold text-brand-700 mb-1.5">How Registration Works</p>
+            <ul className="text-[11px] text-brand-700 space-y-1 leading-relaxed">
               <li>• Courses are assigned by your program curriculum</li>
               <li>• Click <strong>Confirm</strong> during the open window to enroll</li>
               <li>• Registration is reviewed by the registrar's office</li>
@@ -611,7 +611,7 @@ export default function StudentRegistration() {
 
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-gray-500">
-          <Link to="/dashboard" className="hover:text-blue-700 transition font-medium">Dashboard</Link>
+          <Link to="/dashboard" className="hover:text-brand-700 transition font-medium">Dashboard</Link>
           <ChevronRight className="w-3.5 h-3.5" aria-hidden />
           <span className="text-gray-900 font-semibold" aria-current="page">Course Registration</span>
         </nav>
@@ -634,7 +634,7 @@ export default function StudentRegistration() {
             {isRegistered && (
               <button
                 onClick={() => setShowSlip(s => !s)}
-                className="text-xs font-semibold text-blue-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded"
+                className="text-xs font-semibold text-brand-700 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded"
               >
                 {showSlip ? 'Hide Slip' : 'View Slip'}
               </button>
@@ -677,7 +677,7 @@ export default function StudentRegistration() {
             <div className="lg:col-span-2 space-y-5">
               <CourseTable
                 title={isRegistered ? 'Registered Courses' : 'Curriculum Courses'}
-                icon={<BookOpen className="w-4 h-4 text-blue-700" />}
+                icon={<BookOpen className="w-4 h-4 text-brand-700" />}
                 courses={required}
                 emptyText="No curriculum courses are defined for your current year and semester."
               />
