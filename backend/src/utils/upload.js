@@ -3,7 +3,8 @@ const path = require('path');
 const fs = require('fs');
 
 // Create uploads directories if they don't exist
-const uploadDirs = ['uploads/receipts', 'uploads/admissions', 'uploads/profiles', 'uploads/students'];
+const UPLOADS_ROOT = path.join(__dirname, '..', '..', 'uploads');
+const uploadDirs = ['receipts', 'admissions', 'profiles', 'students'].map(d => path.join(UPLOADS_ROOT, d));
 uploadDirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -21,12 +22,12 @@ const isProofSizeAllowed = (sizeBytes) => sizeBytes <= PROOF_MAX_SIZE;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    let dest = 'uploads/';
-    if (file.fieldname === 'proof') dest += 'receipts';
-    else if (file.fieldname === 'receipt') dest += 'receipts';
-    else if (file.fieldname === 'photo') dest += 'students';
-    else if (['transcript', 'idDocument'].includes(file.fieldname)) dest += 'admissions';
-    else dest += 'profiles';
+    let dest = UPLOADS_ROOT;
+    if (file.fieldname === 'proof') dest = path.join(dest, 'receipts');
+    else if (file.fieldname === 'receipt') dest = path.join(dest, 'receipts');
+    else if (file.fieldname === 'photo') dest = path.join(dest, 'students');
+    else if (['transcript', 'idDocument'].includes(file.fieldname)) dest = path.join(dest, 'admissions');
+    else dest = path.join(dest, 'profiles');
     cb(null, dest);
   },
   filename: (req, file, cb) => {

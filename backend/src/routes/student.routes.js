@@ -9,12 +9,13 @@ const {
   getMyAcademicRecord, getMyLifecycle, getMyTranscript,
 } = require('../controllers/student.controller');
 
-if (!fs.existsSync('uploads/students')) {
-  fs.mkdirSync('uploads/students', { recursive: true });
+const STUDENT_UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads', 'students');
+if (!fs.existsSync(STUDENT_UPLOADS_DIR)) {
+  fs.mkdirSync(STUDENT_UPLOADS_DIR, { recursive: true });
 }
 
 const studentPhotoStorage = multer.diskStorage({
-  destination: 'uploads/students',
+  destination: STUDENT_UPLOADS_DIR,
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, `student-photo-${uniqueSuffix}${path.extname(file.originalname)}`);
