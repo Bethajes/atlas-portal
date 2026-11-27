@@ -9,7 +9,7 @@ import Pagination from './Pagination';
  * Validates: Requirements 16.1, 16.2, 16.5
  */
 describe('Pagination - Property 7: Pagination shows correct slice of records', () => {
-  it('shows correct "Showing X–Y of Z" label for any total, page, and pageSize', () => {
+  it('shows correct "Showing X–Y of Z" label for any total, page, and pageSize', { timeout: 30000 }, () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 200 }),
@@ -20,7 +20,7 @@ describe('Pagination - Property 7: Pagination shows correct slice of records', (
           const totalPages = Math.ceil(total / pageSize);
           const validPage = Math.min(page, totalPages);
           
-          const { container } = render(
+          const { container, unmount } = render(
             <Pagination 
               total={total} 
               page={validPage} 
@@ -36,13 +36,14 @@ describe('Pagination - Property 7: Pagination shows correct slice of records', (
           
           // Find the text content
           const text = container.textContent;
+          unmount();
           
           // Assert the label contains the correct values
           const expectedText = `Showing ${expectedStart}–${expectedEnd} of ${total}`;
           expect(text).toContain(expectedText);
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 

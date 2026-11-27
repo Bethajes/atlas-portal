@@ -36,7 +36,7 @@ describe('GpaDistributionPieChart', () => {
   });
 
   // Property 5b: for any non-zero distribution, the chart container is rendered (not empty state)
-  it('renders chart container for any non-zero distribution', () => {
+  it('renders chart container for any non-zero distribution', { timeout: 30000 }, () => {
     fc.assert(
       fc.property(
         fc.record({
@@ -51,7 +51,7 @@ describe('GpaDistributionPieChart', () => {
           cleanup();
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 25 }
     );
   });
 

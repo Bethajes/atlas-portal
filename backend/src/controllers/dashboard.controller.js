@@ -90,49 +90,55 @@ const getInstructorDashboard = async (userId) => {
 
   const instructorDbId = instructor.id;
 
-  const [activeCourses, enrollmentRows, pendingGrading, courses] =
-    await Promise.all([
-      prisma.course.count({ where: { instructorId: instructorDbId } }),
-      prisma.enrollment.findMany({
-        where: {
-          course: { instructorId: instructorDbId },
-          status: 'ENROLLED',
-        },
-        select: { studentId: true },
-      }),
-      prisma.submission.count({
-        where: {
-          grade: null,
-          assignment: { course: { instructorId: instructorDbId } },
-        },
-      }),
-      prisma.course.findMany({
-        where: { instructorId: instructorDbId },
-        include: {
-          _count: {
-            select: { enrollment: true },
+  // Instructors are linked to courses via Section, not Course.instructorId
+  const [sections, pendingGrading] = await Promise.all([
+    prisma.section.findMany({
+      where: { instructorId: instructorDbId },
+      include: {
+        course: { select: { id: true, code: true, title: true } },
+        _count: { select: { enrollments: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    }),
+    prisma.submission.count({
+      where: {
+        grade: null,
+        assignment: {
+          course: {
+            sections: { some: { instructorId: instructorDbId } },
           },
         },
-        orderBy: { createdAt: 'desc' },
-        take: 8,
-      }),
-    ]);
+      },
+    }),
+  ]);
 
-  const uniqueStudents = new Set(enrollmentRows.map((e) => e.studentId));
+  // Deduplicate courses taught via sections
+  const courseMap = new Map();
+  let totalStudents = 0;
+  for (const sec of sections) {
+    totalStudents += sec._count.enrollments;
+    if (!courseMap.has(sec.course.id)) {
+      courseMap.set(sec.course.id, {
+        id: sec.course.id,
+        code: sec.course.code,
+        title: sec.course.title,
+        studentsCount: 0,
+      });
+    }
+    courseMap.get(sec.course.id).studentsCount += sec._count.enrollments;
+  }
+
+  const courses = Array.from(courseMap.values());
 
   return {
     role: 'INSTRUCTOR',
     stats: {
-      activeCourses,
-      totalStudents: uniqueStudents.size,
+      activeCourses: courses.length,
+      totalStudents,
       pendingGrading,
     },
-    courses: courses.map((course) => ({
-      id: course.id,
-      code: course.code,
-      title: course.title,
-      studentsCount: course._count.enrollment,
-    })),
+    courses,
   };
 };
 

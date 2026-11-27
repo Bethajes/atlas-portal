@@ -10,14 +10,15 @@ const uid  = () => crypto.randomUUID();
 const now  = () => new Date();
 const hash = (pw) => bcrypt.hash(pw, 10);
 
-async function upsertUser(email, name, role, pw) {
+async function upsertUser(email, name, role, pw, extra = {}) {
   return prisma.user.upsert({
     where:  { institutionalEmail: email },
-    update: { password: pw, emailVerified: true },
+    update: { password: pw, emailVerified: true, ...extra },
     create: {
       id: uid(), name, institutionalEmail: email,
       password: pw, role, emailVerified: true,
       isFirstLogin: false, updatedAt: now(),
+      ...extra,
     },
   });
 }
@@ -130,7 +131,7 @@ async function main() {
   // 4. SYSTEM USERS  (admin, registrar, dean)
   // ══════════════════════════════════════════════════════════════
   console.log('Seeding system users...');
-  await upsertUser('admin@atlas.edu',         'Admin User',           'ADMIN',      pw);
+  await upsertUser('admin@atlas.edu',         'Admin User',           'ADMIN',      pw, { adminRole: 'SUPER_ADMIN' });
   await upsertUser('registrar@atlas.edu',     'Sara Registrar',       'REGISTRAR',  pw);
   await upsertUser('registrar2@atlas.edu',    'Mekdes Registrar',     'REGISTRAR',  pw);
   console.log('  ✓ admin, 2 registrars');
@@ -186,6 +187,29 @@ async function main() {
     instructors[ins.empId] = profile;
   }
   console.log(`  ✓ ${Object.keys(instructors).length} instructors`);
+
+  // ── Assign department heads ─────────────────────────────────
+  const deptHeadAssignments = [
+    { deptCode: 'CS',    empId: 'INS001' },
+    { deptCode: 'IT',    empId: 'INS003' },
+    { deptCode: 'EE',    empId: 'INS004' },
+    { deptCode: 'ME',    empId: 'INS006' },
+    { deptCode: 'CE',    empId: 'INS007' },
+    { deptCode: 'BUS',   empId: 'INS008' },
+    { deptCode: 'ECON',  empId: 'INS010' },
+    { deptCode: 'NUR',   empId: 'INS011' },
+    { deptCode: 'PHARM', empId: 'INS012' },
+    { deptCode: 'MATH',  empId: 'INS013' },
+  ];
+  for (const a of deptHeadAssignments) {
+    if (depts[a.deptCode] && instructors[a.empId]) {
+      await prisma.department.update({
+        where: { id: depts[a.deptCode].id },
+        data: { headId: instructors[a.empId].id },
+      });
+    }
+  }
+  console.log(`  ✓ ${deptHeadAssignments.length} department heads assigned`);
 
   // ══════════════════════════════════════════════════════════════
   // 6. COURSES  (50 courses across all departments)
@@ -364,16 +388,16 @@ async function main() {
 
   const sections = {};
   for (const s of sectionData) {
-    const key      = `${s.courseCode}-${s.name}`;
-    const existing = await prisma.section.findFirst({
-      where: { courseId: courses[s.courseCode].id, name: s.name, semesterId: activeSem.id },
-    });
+    const key        = `${s.courseCode}-${s.name}`;
+    const sectionCode = `${s.courseCode}-${s.name}`;
+    // Look up by sectionCode (unique) to handle re-runs with different active semesters
+    const existing = await prisma.section.findUnique({ where: { sectionCode } });
     sections[key] = existing ?? await prisma.section.create({
       data: {
         id: uid(),
         courseId:     courses[s.courseCode].id,
         name:         s.name,
-        sectionCode:  `${s.courseCode}-${s.name}`,
+        sectionCode,
         instructorId: instructors[s.empId].id,
         semesterId:   activeSem.id,
         departmentId: courses[s.courseCode].departmentId,
@@ -897,14 +921,15 @@ async function main() {
   for (const [i, c] of mktY1Courses.entries()) {
     const course = mktCourseMap[c.code];
     const instrId = i % 2 === 0 ? mktInstructorProfile1?.id : mktInstructorProfile2?.id;
-    const exists = await prisma.section.findFirst({ where: { courseId: course.id, name: 'A', semesterId: activeSem.id } });
+    const sectionCode = `${course.code}-A`;
+    const exists = await prisma.section.findUnique({ where: { sectionCode } });
     if (!exists && instrId) {
       await prisma.section.create({
         data: {
           id: uid(),
           courseId: course.id,
           name: 'A',
-          sectionCode: `${course.code}-A`,
+          sectionCode,
           instructorId: instrId,
           semesterId: activeSem.id,
           departmentId: mktDept.id,

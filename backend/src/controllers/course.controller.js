@@ -286,6 +286,8 @@ const getMyCourses = async (req, res) => {
 };
 
 // ─── GET INSTRUCTOR COURSES ──────────────────────────────────
+// Instructors are assigned to courses via Section records.
+// We gather unique courses from the instructor's sections.
 const getInstructorCourses = async (req, res) => {
   try {
     const instructor = await prisma.instructor.findUnique({
@@ -296,16 +298,50 @@ const getInstructorCourses = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Instructor profile not found' });
     }
 
-    const courses = await prisma.course.findMany({
+    // Fetch sections taught by this instructor, including course details
+    const sections = await prisma.section.findMany({
       where: { instructorId: instructor.id },
       include: {
-        academicSemester: { select: { name: true } },
-        department: { select: { name: true } },
-        _count: { select: { enrollment: true, assignment: true } },
+        course: {
+          include: {
+            academicSemester: { select: { name: true } },
+            department: { select: { name: true } },
+            _count: { select: { enrollment: true, assignment: true } },
+          },
+        },
+        _count: { select: { enrollments: true } },
       },
-      orderBy: { code: 'asc' },
+      orderBy: [{ course: { code: 'asc' } }, { name: 'asc' }],
     });
 
+    // Deduplicate by courseId but keep section info
+    const courseMap = new Map();
+    for (const sec of sections) {
+      const c = sec.course;
+      if (!courseMap.has(c.id)) {
+        courseMap.set(c.id, {
+          id: c.id,
+          code: c.code,
+          title: c.title,
+          credits: c.credits,
+          department: c.department?.name,
+          semester: c.academicSemester?.name ?? '—',
+          assignments: c._count.assignment,
+          enrolledCount: 0,
+          sections: [],
+        });
+      }
+      const entry = courseMap.get(c.id);
+      entry.enrolledCount += sec._count.enrollments;
+      entry.sections.push({
+        id: sec.id,
+        name: sec.name,
+        sectionCode: sec.sectionCode,
+        enrolledCount: sec._count.enrollments,
+      });
+    }
+
+    const courses = Array.from(courseMap.values());
     return res.status(200).json({ success: true, courses });
   } catch (error) {
     console.error('Get instructor courses error:', error.message);

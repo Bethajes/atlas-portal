@@ -55,6 +55,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    // In production: log errors only (done in global error handler)
+    return next();
+  }
   const start = Date.now();
   console.log(`➡️ ${req.method} ${req.originalUrl}`);
   res.on('finish', () => {
@@ -116,10 +120,16 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0';
 
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📚 Health check: http://localhost:${PORT}/api/health`);
+const server = app.listen(PORT, HOST, () => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction) {
+    console.log(`🚀 Server running on port ${PORT}`);
+  } else {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📚 Health check: http://localhost:${PORT}/api/health`);
+  }
 });
 
 // Handle server startup errors (like EADDRINUSE)
